@@ -947,17 +947,58 @@
     function collectCurrentInputs() {
       const values = {};
       projectFields().forEach(function(el) {
-        values[el.id] = el.value;
+        // Évite de sauvegarder des champs vides qui pourraient donner NaN au prochain chargement.
+        if (el.value !== undefined && el.value !== null && el.value !== "") {
+          values[el.id] = el.value;
+        }
       });
       return values;
     }
 
     function applyInputs(values) {
-      Object.keys(values || {}).forEach(function(id) {
-        const el = document.getElementById(id);
-        if (el) el.value = values[id];
+      values = values || {};
+
+      // Compatibilité avec les projets créés avant l'ajout de certains champs.
+      // Si un champ n'existe pas dans l'ancien projet, on lui donne une valeur sûre.
+      const defaults = {
+        currentTotal: "70000",
+        currentUnit: "A",
+        barCount: "3",
+        sharingFactor: "1.00",
+        length: "12",
+        installTemp: "20",
+        width: "250",
+        thickness: "25",
+        dimensionUnit: "mm",
+        surfaceFactor: "0.85",
+        internalFaceFactor: "0.25",
+        spacing: "25",
+        limitTemp: "90",
+        ambient: "40",
+        hCoeff: "8",
+        emissivity: "0.30",
+        rho20: "2.82e-8",
+        alphaR: "0.004",
+        alphaL: "23.1e-6"
+      };
+
+      Object.keys(defaults).forEach(function(id) {
+        if (values[id] === undefined || values[id] === null || values[id] === "") {
+          values[id] = defaults[id];
+        }
       });
-      calculate();
+
+      Object.keys(values).forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el && values[id] !== undefined && values[id] !== null) {
+          el.value = values[id];
+        }
+      });
+
+      // Laisse le DOM appliquer les nouvelles valeurs avant de recalculer.
+      setTimeout(function() {
+        calculate();
+      }, 50);
     }
 
     function refreshProjectList(selectedName) {

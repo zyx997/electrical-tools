@@ -99,17 +99,19 @@
 
     .wrap { position: relative; z-index: 2; max-width: 1340px; margin: 0 auto; padding: 34px 22px 60px; }
     .hero { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 22px; margin-bottom: 22px; }
-    .panel, .hero-card { background: var(--panel); border: 1px solid var(--border); border-radius: 26px; box-shadow: 0 24px 70px rgba(0,0,0,0.34); backdrop-filter: blur(18px); }
+    .panel, .hero-card { background: var(--panel); border: 1px solid var(--border); border-radius: 26px; box-shadow: 0 24px 70px rgba(0,0,0,0.34); backdrop-filter: blur(18px); overflow: visible;}
     .hero-card { padding: 28px; }
     h1 { margin: 0; font-size: clamp(32px, 5vw, 58px); line-height: 1.05; }
     .subtitle { margin-top: 16px; color: var(--muted); font-size: 17px; line-height: 1.55; }
     .formula-box { padding: 22px; display: grid; gap: 12px; }
     .formula-box h2 { margin: 0; font-size: 20px; }
     .formula { color: #e0f2fe; line-height: 1.55; font-size: 15px; }
-    .layout { display: grid; grid-template-columns: 440px 1fr; gap: 22px; }
-    .panel { padding: 22px; }
-    .panel h2 { margin: 0 0 16px; font-size: 22px; }
-    .panel h3 { margin: 20px 0 12px; font-size: 17px; color: #e2e8f0; }
+    .layout { display: grid; grid-template-columns: 440px 1fr; gap: 22px; position: relative; z-index: 1; }
+    .layout > .panel:first-child { position: relative;z-index: 1000;}
+    .layout > .panel:last-child { position: relative;z-index: 1;}
+    .panel { padding: 22px; overflow: visible;}
+    .panel h2 { margin: 0 0 16px; font-size: 22px; overflow: visible; }
+    .panel h3 { margin: 20px 0 12px; font-size: 17px; color: #e2e8f0; overflow: visible; }
 
     .field-grid { display: grid; grid-template-columns: 1fr 110px; gap: 12px; align-items: end; margin-bottom: 13px; }
     .field-grid.three { grid-template-columns: 1fr 1fr 1fr; }
@@ -140,7 +142,7 @@
 
     .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
     canvas { width: 100%; min-height: 330px; border-radius: 22px; background: rgba(2, 6, 23, 0.58); border: 1px solid var(--border); }
-    .table { width: 100%; border-collapse: collapse; margin-top: 16px; overflow: hidden; border-radius: 16px; font-size: 14px; }
+    .table { width: 100%; border-collapse: collapse; margin-top: 16px; overflow: visible; border-radius: 16px; font-size: 14px; }
     .table th, .table td { border-bottom: 1px solid rgba(255,255,255,0.12); padding: 11px 10px; text-align: left; }
     .table th { color: #bae6fd; background: rgba(56,189,248,0.12); }
     .table td { color: #e2e8f0; }
@@ -175,7 +177,7 @@
       transform: translateY(6px);
       transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
       position: absolute;
-      z-index: 9999;
+      z-index: 99999;
       left: 22px;
       top: -12px;
       width: min(340px, 78vw);
@@ -231,7 +233,7 @@
       body { background: white !important; color: black !important; }
       body::before, body::after, .topbar, .menu, .actions, .report-actions, .copy-status { display: none !important; }
       .wrap { max-width: none !important; padding: 0 !important; }
-      .panel, .hero-card { background: white !important; color: black !important; border: 1px solid #999 !important; box-shadow: none !important; backdrop-filter: none !important; page-break-inside: avoid; }
+      .panel, .hero-card { background: white !important; color: black !important; border: 1px solid #999 !important; box-shadow: none !important; backdrop-filter: none !important; page-break-inside: avoid; overflow: visible; }
       .result-card, .table th, .table td { color: black !important; border-color: #bbb !important; }
       canvas { border: 1px solid #999 !important; }
     }

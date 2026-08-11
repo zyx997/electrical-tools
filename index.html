@@ -3,22 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JSB Electrical Tools</title>
+  <title>Electrical Tools</title>
   <style>
     :root {
-      --bg-overlay: rgba(5, 12, 25, 0.72);
+      --bg-overlay: rgba(5, 12, 25, 0.74);
       --card: rgba(255, 255, 255, 0.12);
       --card-hover: rgba(255, 255, 255, 0.22);
       --text: #ffffff;
       --muted: #cbd5e1;
       --accent: #38bdf8;
       --accent-2: #22c55e;
+      --warning: #f59e0b;
       --border: rgba(255, 255, 255, 0.20);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
 
     body {
       margin: 0;
@@ -27,6 +28,9 @@
       color: var(--text);
       background:
         linear-gradient(var(--bg-overlay), var(--bg-overlay)),
+        radial-gradient(circle at 20% 15%, rgba(56, 189, 248, 0.24), transparent 32%),
+        radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.15), transparent 30%),
+        radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.14), transparent 32%),
         url("https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=1800&q=80");
       background-size: cover;
       background-position: center;
@@ -39,7 +43,7 @@
       align-items: center;
       gap: 16px;
       padding: 18px 28px;
-      background: rgba(0, 0, 0, 0.35);
+      background: rgba(0, 0, 0, 0.38);
       backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
       position: sticky;
@@ -70,6 +74,7 @@
       flex-wrap: wrap;
     }
 
+    .menu a,
     .menu button,
     .menu label {
       border: 1px solid var(--border);
@@ -79,19 +84,19 @@
       border-radius: 999px;
       cursor: pointer;
       font-size: 14px;
+      text-decoration: none;
     }
 
+    .menu a:hover,
     .menu button:hover,
     .menu label:hover {
       background: rgba(255, 255, 255, 0.22);
     }
 
-    #imageInput {
-      display: none;
-    }
+    #imageInput { display: none; }
 
     .hero {
-      max-width: 1150px;
+      max-width: 1180px;
       margin: 0 auto;
       padding: 70px 24px 30px;
       text-align: center;
@@ -106,14 +111,34 @@
 
     .hero p {
       margin: 18px auto 0;
-      max-width: 750px;
+      max-width: 820px;
       color: var(--muted);
       font-size: 18px;
       line-height: 1.55;
     }
 
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .quick-links a {
+      color: white;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.10);
+      padding: 10px 14px;
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+    }
+
+    .quick-links a:hover { background: rgba(255,255,255,0.20); }
+
     .search-box {
-      max-width: 600px;
+      max-width: 680px;
       margin: 30px auto 0;
     }
 
@@ -129,27 +154,33 @@
       backdrop-filter: blur(10px);
     }
 
-    .search-box input::placeholder {
-      color: #e2e8f0;
-    }
+    .search-box input::placeholder { color: #e2e8f0; }
 
     .section {
-      max-width: 1150px;
+      max-width: 1180px;
       margin: 0 auto;
       padding: 24px;
     }
 
     .section-title {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 16px;
     }
 
     .section-title h2 {
-      font-size: 24px;
+      font-size: 26px;
       margin: 0;
+    }
+
+    .section-title p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 700px;
+      line-height: 1.45;
     }
 
     .grid {
@@ -159,7 +190,7 @@
     }
 
     .tile {
-      min-height: 150px;
+      min-height: 160px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -181,9 +212,7 @@
       border-color: rgba(56, 189, 248, 0.70);
     }
 
-    .tile .icon {
-      font-size: 34px;
-    }
+    .tile .icon { font-size: 34px; }
 
     .tile h3 {
       margin: 0;
@@ -195,6 +224,13 @@
       color: var(--muted);
       font-size: 14px;
       line-height: 1.4;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
     }
 
     .tag {
@@ -213,8 +249,25 @@
       border-color: rgba(34, 197, 94, 0.35);
     }
 
+    .tag.amber {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .divider {
+      max-width: 1180px;
+      margin: 24px auto 0;
+      padding: 0 24px;
+    }
+
+    .divider-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    }
+
     .footer {
-      max-width: 1150px;
+      max-width: 1180px;
       margin: 30px auto 0;
       padding: 24px;
       color: var(--muted);
@@ -227,20 +280,15 @@
         align-items: flex-start;
         flex-direction: column;
       }
-
-      .menu {
-        width: 100%;
-      }
-
+      .menu { width: 100%; }
       .menu button,
-      .menu label {
+      .menu label,
+      .menu a {
         flex: 1;
         text-align: center;
       }
-
-      .hero {
-        padding-top: 42px;
-      }
+      .hero { padding-top: 42px; }
+      .section-title { align-items: flex-start; flex-direction: column; }
     }
   </style>
 </head>
@@ -248,10 +296,13 @@
   <header class="topbar">
     <div class="brand">
       <strong>Electrical Tools</strong>
-      <span>Boîte à outils pour calculs électriques</span>
+      <span>Calculateurs, essais HT et bibliothèque technique</span>
     </div>
 
     <div class="menu">
+      <a href="#calculateurs">Calculateurs</a>
+      <a href="#essais">Essais HT</a>
+      <a href="#bibliotheque">Bibliothèque</a>
       <label for="imageInput">Changer le fond</label>
       <input id="imageInput" type="file" accept="image/*">
       <button type="button" onclick="resetBackground()">Fond par défaut</button>
@@ -260,147 +311,234 @@
 
   <main>
     <section class="hero">
-      <h1>Outils et Calculateurs électriques</h1>
+      <h1>Outils électriques haute tension</h1>
       <p>
-        Portail pour accéder rapidement à des outils de calcul électriques,
-        transformateurs, moteurs, câbles, postes, court-circuit, facteur de puissance et lignes HT.
+        Portail pour accéder rapidement aux calculateurs, aux procédures d’essais électriques,
+        aux rapports techniques et aux références d’ingénierie pour équipements industriels HT.
       </p>
 
+      <div class="quick-links">
+        <a href="#calculateurs">⚙️ Calculateurs</a>
+        <a href="#essais">🧰 Essais électriques HT</a>
+        <a href="#bibliotheque">📚 Bibliothèque technique</a>
+      </div>
+
       <div class="search-box">
-        <input id="searchInput" type="search" placeholder="Rechercher un calculateur, un outil... ex. transformateur, moteur, court-circuit">
+        <input id="searchInput" type="search" placeholder="Rechercher... ex. transformateur, TTR, SFRA, busbar, stator, DGA">
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="calculateurs">
       <div class="section-title">
-        <h2>Calculateurs principaux</h2>
+        <div>
+          <h2>Calculateurs principaux</h2>
+          <p>Outils de calcul et de dimensionnement pour grandeurs électriques, transformateurs, barres, stator, lignes, câbles et diagnostics.</p>
+        </div>
       </div>
 
-      <div class="grid" id="toolGrid">
-        <a class="tile" href="test.html" data-name="test calculateur multiplier par 2">
-          <div class="icon">🧪</div>
-          <div>
-            <h3>Calculateur de test</h3>
-            <p>Page existante pour valider la navigation du site.</p>
-          </div>
-          <span class="tag green">Actif</span>
-        </a>
-
-        <a class="tile" href="triphase.html" data-name="triphasé kva kw courant facteur puissance">
+      <div class="grid">
+        <a class="tile" href="triphase.html" data-name="calculateur triphasé kva kw courant facteur puissance tension ligne phase">
           <div class="icon">⚡</div>
           <div>
             <h3>Triphasé kW / kVA / A</h3>
-            <p>Courant, puissance apparente, puissance active et facteur de puissance.</p>
-          </div>
-          <span class="tag">À créer</span>
-        </a>
-
-        <a class="tile" href="transformer.html" data-name="transformateur kva courant primaire secondaire impédance">
-          <div class="icon">🔷</div>
-          <div>
-            <h3>Transformateur</h3>
-            <p>Courants primaire et secondaire, kVA, tension, impédance et pertes.</p>
-          </div>
-          <span class="tag">À créer</span>
-        </a>
-
-
-
-        <a class="tile" href="hv-tests.html" data-name="essais haute tension transformateur disjoncteur cable ct pt moteur générateur parafoudre procédures rapports">
-          <div class="icon">🧰</div>
-          <div>
-            <h3>Essais HT</h3>
-            <p>Bibliothèque d’essais par équipement avec méthodes, données à collecter et rapports.</p>
+            <p>Courant, puissance active, puissance apparente, facteur de puissance et diagrammes.</p>
           </div>
           <span class="tag green">Actif</span>
         </a>
 
-        <a class="tile" href="voltage-drop.html" data-name="chute tension cable conducteur longueur">
+        <a class="tile" href="transformer.html" data-name="calculateur transformateur kva courant primaire secondaire impedance pertes rendement court circuit">
+          <div class="icon">🔷</div>
+          <div>
+            <h3>Transformateur</h3>
+            <p>Courants primaire/secondaire, impédance, court-circuit, pertes, rendement et projets.</p>
+          </div>
+          <span class="tag green">Actif</span>
+        </a>
+
+        <a class="tile" href="busbar.html" data-name="calculateur busbar barre omnibus ampacity echauffement courant aluminium parallel">
+          <div class="icon">🟧</div>
+          <div>
+            <h3>Busbar aluminium</h3>
+            <p>Échauffement, barres en parallèle, correction externe/interne, pertes et projets.</p>
+          </div>
+          <span class="tag green">Actif</span>
+        </a>
+
+        <a class="tile" href="statorbar.html" data-name="calculateur barre stator strands isolation semiconducteur volt mil kv mm slot">
+          <div class="icon">🧲</div>
+          <div>
+            <h3>Barre de stator</h3>
+            <p>Strands, isolation, semi-conducteur, statistiques de slot, Volt/mil et kV/mm.</p>
+          </div>
+          <span class="tag green">Actif</span>
+        </a>
+
+        <a class="tile" href="voltage-drop.html" data-name="calculateur chute tension cable conducteur longueur voltage drop">
           <div class="icon">📉</div>
           <div>
             <h3>Chute de tension</h3>
             <p>Estimation de la chute selon courant, longueur, tension et conducteur.</p>
           </div>
-          <span class="tag">À créer</span>
+          <span class="tag amber">À créer</span>
         </a>
 
-        <a class="tile" href="short-circuit.html" data-name="court-circuit iec 60909 fault current impedance">
+        <a class="tile" href="short-circuit.html" data-name="calculateur court circuit iec 60909 fault current impedance">
           <div class="icon">💥</div>
           <div>
             <h3>Court-circuit</h3>
-            <p>Calculs préliminaires de courant de défaut et équivalents d'impédance.</p>
+            <p>Calculs préliminaires de courant de défaut et équivalents d’impédance.</p>
           </div>
-          <span class="tag">À créer</span>
+          <span class="tag amber">À créer</span>
         </a>
 
-        <a class="tile" href="motor.html" data-name="moteur démarrage courant fla lra duty class">
+        <a class="tile" href="motor.html" data-name="calculateur moteur demarrage courant fla lra duty class insulation">
           <div class="icon">⚙️</div>
           <div>
             <h3>Moteurs</h3>
-            <p>FLA, démarrage, service intermittent, classe d'isolation et duty cycle.</p>
+            <p>FLA, démarrage, service intermittent, classe d’isolation et duty cycle.</p>
           </div>
-          <span class="tag">À créer</span>
+          <span class="tag amber">À créer</span>
         </a>
 
-        <a class="tile" href="power-factor.html" data-name="facteur puissance kvar correction condensateur">
-          <div class="icon">🟢</div>
-          <div>
-            <h3>Facteur de puissance</h3>
-            <p>Correction en kVAR, compensation et comparaison avant/après.</p>
-          </div>
-          <span class="tag">À créer</span>
-        </a>
-
-        <a class="tile" href="ct-pt.html" data-name="ct pt transformateur courant potentiel ratio burden">
-          <div class="icon">📏</div>
-          <div>
-            <h3>CT / PT</h3>
-            <p>Ratios, conversion primaire/secondaire, burden et valeurs de lecture.</p>
-          </div>
-          <span class="tag">À créer</span>
-        </a>
-
-        <a class="tile" href="busbar.html" data-name="busbar barre omnibus ampacity échauffement courant">
-          <div class="icon">🟧</div>
-          <div>
-            <h3>Busbar</h3>
-            <p>Courant admissible, échauffement et ordre de grandeur thermique.</p>
-          </div>
-          <span class="tag">À créer</span>
-        </a>
-
-        <a class="tile" href="overhead-line.html" data-name="ligne ht acsr vibration sag tension dampers">
-          <div class="icon">🗼</div>
-          <div>
-            <h3>Lignes HT</h3>
-            <p>Flèche, tension mécanique, vibration éolienne et besoin de dampers.</p>
-          </div>
-          <span class="tag">À créer</span>
-        </a>
-
-        <a class="tile" href="arc-flash.html" data-name="arc flash énergie incidente ppe ieee 1584">
-          <div class="icon">🔥</div>
-          <div>
-            <h3>Arc flash</h3>
-            <p>Page future pour estimations préliminaires et références de sécurité.</p>
-          </div>
-          <span class="tag">À créer</span>
-        </a>
-
-        <a class="tile" href="unit-converter.html" data-name="conversion unités hp kw kva ampère volt ohm">
+        <a class="tile" href="unit-converter.html" data-name="conversion unites hp kw kva ampere volt ohm awg mm2 mils">
           <div class="icon">🔁</div>
           <div>
             <h3>Conversions rapides</h3>
-            <p>HP, kW, kVA, A, V, ohms, mm², AWG, mils et autres unités utiles.</p>
+            <p>HP, kW, kVA, A, V, ohms, mm², AWG, mils et unités utiles.</p>
           </div>
-          <span class="tag">À créer</span>
+          <span class="tag amber">À créer</span>
+        </a>
+      </div>
+    </section>
+
+    <div class="divider"><div class="divider-line"></div></div>
+
+    <section class="section" id="essais">
+      <div class="section-title">
+        <div>
+          <h2>Essais électriques HT</h2>
+          <p>Bibliothèque d’essais par type d’équipement. Chaque tuile mène vers un sous-menu d’essais, de méthodes, de données à collecter et de rapports.</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <a class="tile" href="transformer-tests.html" data-name="essais transformateur triphase monophase ttr resistance enroulement pi tan delta sfra dga traversee">
+          <div class="icon">🔷</div>
+          <div>
+            <h3>Transformateurs</h3>
+            <p>TTR, résistance des enroulements, IR/PI, tan delta, SFRA, courant d’excitation, DGA et traversées.</p>
+          </div>
+          <span class="tag green">Actif</span>
+        </a>
+
+        <a class="tile" href="breaker-tests.html" data-name="essais disjoncteur haute tension timing resistance contact sf6 vide mecanisme bobines">
+          <div class="icon">⏱️</div>
+          <div>
+            <h3>Disjoncteurs HT</h3>
+            <p>Timing, résistance de contact, mécanisme, bobines, SF6/vide et essais fonctionnels.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+
+        <a class="tile" href="instrument-transformer-tests.html" data-name="essais ct pt cvt transformateur courant potentiel ratio polarite excitation burden isolation">
+          <div class="icon">📏</div>
+          <div>
+            <h3>CT / PT / CVT</h3>
+            <p>Ratio, polarité, excitation, burden, isolation, vérifications secondaires et conformité.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+
+        <a class="tile" href="cable-tests.html" data-name="essais cable haute tension vlf hipot tan delta partial discharge gaine continuite defaut">
+          <div class="icon">🧵</div>
+          <div>
+            <h3>Câbles HT</h3>
+            <p>VLF, withstand, tan delta, décharges partielles, gaine, continuité et localisation de défaut.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+
+        <a class="tile" href="machine-tests.html" data-name="essais moteur generateur stator rotor isolation surge pi tan delta partial discharge elcid winding">
+          <div class="icon">🧲</div>
+          <div>
+            <h3>Moteurs / générateurs</h3>
+            <p>Isolation stator/rotor, PI, tan delta, surge, PD, EL-CID, rotor et coins de slot.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+
+        <a class="tile" href="arrester-tests.html" data-name="essais parafoudre arrester courant fuite compteur thermographie insulation">
+          <div class="icon">⚡</div>
+          <div>
+            <h3>Parafoudres</h3>
+            <p>Courant de fuite, compteur d’opérations, inspection visuelle, thermographie et isolation.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+
+        <a class="tile" href="bus-ais-gis-tests.html" data-name="essais busbar poste ais gis resistance contact thermographie partial discharge isolation">
+          <div class="icon">🟧</div>
+          <div>
+            <h3>Barres / AIS / GIS</h3>
+            <p>Résistance de contact, isolation, thermographie, PD, couple mécanique et intégrité.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+
+        <a class="tile" href="protection-tests.html" data-name="essais protection relais injection primaire secondaire declenchement logique interlock alarmes">
+          <div class="icon">🛡️</div>
+          <div>
+            <h3>Protections et contrôle</h3>
+            <p>Injection secondaire, essais fonctionnels, déclenchements, interverrouillages et alarmes.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+      </div>
+    </section>
+
+    <div class="divider"><div class="divider-line"></div></div>
+
+    <section class="section" id="bibliotheque">
+      <div class="section-title">
+        <div>
+          <h2>Bibliothèque technique</h2>
+          <p>Section prévue pour regrouper références, normes, notes techniques, guides de diagnostic et procédures internes.</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <a class="tile" href="standards.html" data-name="normes standards ieee iec csa transformateur cable moteur stator haute tension">
+          <div class="icon">📚</div>
+          <div>
+            <h3>Normes et références</h3>
+            <p>Index futur des normes IEEE, IEC, CSA et références techniques par équipement.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+
+        <a class="tile" href="diagnostics.html" data-name="diagnostic dga sfra tan delta partial discharge ethylene transformer stator cable">
+          <div class="icon">🧠</div>
+          <div>
+            <h3>Guides de diagnostic</h3>
+            <p>DGA, SFRA, tan delta, PD, stator bars, LFH drying et diagnostics spécialisés.</p>
+          </div>
+          <span class="tag amber">À créer</span>
+        </a>
+
+        <a class="tile" href="reports.html" data-name="rapports sauvegardes projets json export import pdf">
+          <div class="icon">🗂️</div>
+          <div>
+            <h3>Rapports et projets</h3>
+            <p>Future section pour retrouver les projets sauvegardés, exports JSON et rapports PDF.</p>
+          </div>
+          <span class="tag amber">À créer</span>
         </a>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    Electrical Tools - Les calculateurs doivent être validés avant utilisation pour conception ou décision d'ingénierie.
+    Electrical Tools - Les calculateurs et fiches d’essais doivent être validés avant utilisation pour conception, diagnostic ou décision d’ingénierie.
   </footer>
 
   <script>
@@ -439,7 +577,7 @@
       const query = searchInput.value.toLowerCase().trim();
 
       tiles.forEach(function(tile) {
-        const name = tile.getAttribute("data-name").toLowerCase();
+        const name = (tile.getAttribute("data-name") || "").toLowerCase();
         const text = tile.innerText.toLowerCase();
         const match = name.includes(query) || text.includes(query);
         tile.style.display = match ? "flex" : "none";

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur transformateur - JSB Electrical Tools</title>
+  <style>
+    :root {
+      --overlay: rgba(3, 7, 18, 0.76);
+      --panel: rgba(15, 23, 42, 0.76);
+      --soft: rgba(255, 255, 255, 0.10);
+      --border: rgba(255, 255, 255, 0.18);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --blue: #38bdf8;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --violet: #a78bfa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(var(--overlay), var(--overlay)),
+        radial-gradient(circle at 20% 15%, rgba(56, 189, 248, 0.22), transparent 30%),
+        radial-gradient(circle at 78% 20%, rgba(167, 139, 250, 0.18), transparent 30%),
+        radial-gradient(circle at 48% 85%, rgba(245, 158, 11, 0.18), transparent 32%),
+        #020617;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.22;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.25;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1300' height='760' viewBox='0 0 1300 760'%3E%3Cg fill='none' stroke-linecap='round'%3E%3Crect x='470' y='170' width='360' height='260' rx='32' stroke='%23ffffff' stroke-width='5' opacity='0.55'/%3E%3Cpath d='M545 260 q35 -70 70 0 t70 0 t70 0' stroke='%2338bdf8' stroke-width='6' opacity='0.75'/%3E%3Cpath d='M545 340 q35 -70 70 0 t70 0 t70 0' stroke='%23f59e0b' stroke-width='6' opacity='0.75'/%3E%3Cpath d='M250 300 H470 M830 300 H1050' stroke='%23ffffff' stroke-width='6' opacity='0.55'/%3E%3Cpath d='M260 300 l55 -50 M260 300 l55 50 M1040 300 l-55 -50 M1040 300 l-55 50' stroke='%23ffffff' stroke-width='4' opacity='0.55'/%3E%3Ccircle cx='650' cy='300' r='210' stroke='%23a78bfa' stroke-width='3' opacity='0.35'/%3E%3Ctext x='240' y='245' font-family='Arial' font-size='34' fill='%23ffffff' opacity='0.7'%3EHV%3C/text%3E%3Ctext x='1015' y='245' font-family='Arial' font-size='34' fill='%23ffffff' opacity='0.7'%3ELV%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+      mix-blend-mode: screen;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 24px;
+      background: rgba(2, 6, 23, 0.84);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand { display: flex; flex-direction: column; gap: 2px; }
+    .brand strong { font-size: 20px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+
+    .menu { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .btn, .menu label {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.10);
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover, .menu label:hover { background: rgba(255,255,255,0.18); }
+    #imageInput { display: none; }
+
+    .wrap {
+      position: relative;
+      z-index: 2;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 34px 22px 60px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+
+    .panel, .hero-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.34);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-card { padding: 28px; }
+    h1 { margin: 0; font-size: clamp(32px, 5vw, 58px); line-height: 1.05; }
+    .subtitle { margin-top: 16px; color: var(--muted); font-size: 17px; line-height: 1.55; }
+
+    .formula-box { padding: 22px; display: grid; gap: 12px; }
+    .formula-box h2 { margin: 0; font-size: 20px; }
+    .formula { color: #e0f2fe; line-height: 1.55; font-size: 15px; }
+
+    .layout { display: grid; grid-template-columns: 430px 1fr; gap: 22px; }
+    .panel { padding: 22px; }
+    .panel h2 { margin: 0 0 16px; font-size: 22px; }
+    .panel h3 { margin: 20px 0 12px; font-size: 17px; color: #e2e8f0; }
+
+    .field-grid { display: grid; grid-template-columns: 1fr 110px; gap: 12px; align-items: end; margin-bottom: 13px; }
+    .field-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    label { display: block; color: #e2e8f0; font-size: 13px; margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      color: white;
+      background: rgba(15, 23, 42, 0.78);
+      outline: none;
+      font-size: 15px;
+    }
+    select option { background: #0f172a; color: white; }
+    input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(56,189,248,0.14); }
+
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .primary { background: linear-gradient(135deg, #0284c7, #22c55e); border: 0; font-weight: bold; }
+    .secondary { background: rgba(255,255,255,0.10); }
+
+    .results-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .result-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: var(--soft);
+      border: 1px solid var(--border);
+      min-height: 110px;
+    }
+    .result-card .label { color: var(--muted); font-size: 13px; }
+    .result-card .value { margin-top: 8px; font-size: 24px; font-weight: bold; }
+    .result-card .note { margin-top: 6px; color: #cbd5e1; font-size: 12px; line-height: 1.4; }
+
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    canvas {
+      width: 100%;
+      min-height: 330px;
+      border-radius: 22px;
+      background: rgba(2, 6, 23, 0.58);
+      border: 1px solid var(--border);
+    }
+
+    .table { width: 100%; border-collapse: collapse; margin-top: 16px; overflow: hidden; border-radius: 16px; font-size: 14px; }
+    .table th, .table td { border-bottom: 1px solid rgba(255,255,255,0.12); padding: 11px 10px; text-align: left; }
+    .table th { color: #bae6fd; background: rgba(56,189,248,0.12); }
+    .table td { color: #e2e8f0; }
+
+    .warning {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.30);
+      color: #fde68a;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .pill { padding: 7px 10px; border-radius: 999px; background: rgba(56,189,248,0.14); border: 1px solid rgba(56,189,248,0.28); color: #bae6fd; font-size: 12px; }
+
+    @media (max-width: 1080px) {
+      .hero, .layout, .chart-grid { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 650px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .menu { width: 100%; }
+      .btn, .menu label { flex: 1; }
+      .field-grid, .field-grid.three { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: 1fr; }
+      .actions { grid-template-columns: 1fr; }
+      canvas { min-height: 280px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>JSB Electrical Tools</strong>
+      <span>Calculateur détaillé de transformateur</span>
+    </div>
+    <div class="menu">
+      <a class="btn" href="index.html">⬅ Retour au portail</a>
+      <label for="imageInput">Changer le fond</label>
+      <input id="imageInput" type="file" accept="image/*">
+      <button class="btn" type="button" onclick="resetBackground()">Fond transformateur</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-card">
+        <h1>Calculateur transformateur avancé</h1>
+        <p class="subtitle">
+          Outil de calcul pour transformateurs monophasés ou triphasés : courants primaire/secondaire,
+          rapport de transformation, impédance de base, courant de court-circuit, pertes, rendement,
+          régulation de tension et équivalent R + jX en ohms et en per unit.
+        </p>
+        <div class="pill-row">
+          <span class="pill">3φ / 1φ</span>
+          <span class="pill">kVA / MVA</span>
+          <span class="pill">%Z</span>
+          <span class="pill">X/R</span>
+          <span class="pill">Pertes</span>
+          <span class="pill">Rendement</span>
+        </div>
+      </div>
+      <div class="panel formula-box">
+        <h2>Relations principales</h2>
+        <div class="formula">
+          I<sub>3φ</sub> = kVA × 1000 / (√3 × V<sub>LL</sub>)<br>
+          I<sub>1φ</sub> = kVA × 1000 / V<br>
+          I<sub>sc</sub> ≈ I<sub>FLA</sub> / Z<sub>pu</sub><br>
+          Z<sub>base</sub> = V<sub>LL</sub><sup>2</sup> / S<sub>3φ</sub><br>
+          R<sub>pu</sub> = Z<sub>pu</sub> / √(1 + X/R²), X<sub>pu</sub> = R<sub>pu</sub> × X/R
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Entrées</h2>
+
+        <h3>1. Plaque signalétique</h3>
+        <div class="field-grid">
+          <div>
+            <label for="phaseMode">Type</label>
+            <select id="phaseMode" oninput="calculate()">
+              <option value="three">Triphasé</option>
+              <option value="single">Monophasé</option>
+            </select>
+          </div>
+          <div>
+            <label for="ratingUnit">Unité</label>
+            <select id="ratingUnit" oninput="calculate()">
+              <option value="kVA">kVA</option>
+              <option value="MVA">MVA</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div>
+            <label for="rating">Puissance nominale</label>
+            <input id="rating" type="number" step="any" value="2500" oninput="calculate()">
+          </div>
+          <div>
+            <label for="freq">Hz</label>
+            <input id="freq" type="number" step="any" value="60" oninput="calculate()">
+          </div>
+        </div>
+
+        <div class="field-grid three">
+          <div>
+            <label for="vPrimary">Tension primaire</label>
+            <input id="vPrimary" type="number" step="any" value="25000" oninput="calculate()">
+          </div>
+          <div>
+            <label for="vSecondary">Tension secondaire</label>
+            <input id="vSecondary" type="number" step="any" value="600" oninput="calculate()">
+          </div>
+          <div>
+            <label for="voltageUnit">Unité V</label>
+            <select id="voltageUnit" oninput="calculate()">
+              <option value="V">V</option>
+              <option value="kV">kV</option>
+            </select>
+          </div>
+        </div>
+
+        <h3>2. Impédance et X/R</h3>
+        <div class="field-grid three">
+          <div>
+            <label for="zPercent">Impédance %Z</label>
+            <input id="zPercent" type="number" step="any" value="5.75" oninput="calculate()">
+          </div>
+          <div>
+            <label for="xrRatio">Ratio X/R</label>
+            <input id="xrRatio" type="number" step="any" value="8" oninput="calculate()">
+          </div>
+          <div>
+            <label for="sourceMVA">Source MVA</label>
+            <input id="sourceMVA" type="number" step="any" value="0" oninput="calculate()">
+          </div>
+        </div>
+
+        <h3>3. Pertes et charge</h3>
+        <div class="field-grid three">
+          <div>
+            <label for="coreLoss">Pertes à vide</label>
+            <input id="coreLoss" type="number" step="any" value="3.5" oninput="calculate()">
+          </div>
+          <div>
+            <label for="cuLoss">Pertes cuivre pleine charge</label>
+            <input id="cuLoss" type="number" step="any" value="22" oninput="calculate()">
+          </div>
+          <div>
+            <label for="lossUnit">Unité pertes</label>
+            <select id="lossUnit" oninput="calculate()">
+              <option value="kW">kW</option>
+              <option value="W">W</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-grid three">
+          <div>
+            <label for="loadPercent">Charge</label>
+            <input id="loadPercent" type="number" step="any" value="75" oninput="calculate()">
+          </div>
+          <div>
+            <label for="pf">Facteur de puissance</label>
+            <input id="pf" type="number" step="0.001" min="0" max="1" value="0.90" oninput="calculate()">
+          </div>
+          <div>
+            <label for="loadType">Type</label>
+            <select id="loadType" oninput="calculate()">
+              <option value="lagging">Inductif</option>
+              <option value="leading">Capacitif</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" type="button" onclick="calculate()">Calculer</button>
+          <button class="btn secondary" type="button" onclick="loadExample()">Exemple 25 kV / 600 V</button>
+        </div>
+
+        <div class="warning">
+          Les résultats sont des calculs d'ordre de grandeur applicables à un transformateur équilibré. Les protections,
+          les niveaux de court-circuit, la tenue thermique, la coordination et l'arc flash doivent être validés avec les données
+          officielles de plaque, les rapports d'essais et les outils d'ingénierie applicables.
+        </div>
+      </aside>
+
+      <section class="panel">
+        <h2>Résultats calculés</h2>
+        <div class="results-grid">
+          <div class="result-card"><div class="label">Courant primaire nominal</div><div class="value" id="outIp">-</div><div class="note" id="outIp2">-</div></div>
+          <div class="result-card"><div class="label">Courant secondaire nominal</div><div class="value" id="outIs">-</div><div class="note" id="outIs2">-</div></div>
+          <div class="result-card"><div class="label">Rapport de tension</div><div class="value" id="outRatio">-</div><div class="note" id="outRatio2">-</div></div>
+          <div class="result-card"><div class="label">Impédance équivalente</div><div class="value" id="outZohm">-</div><div class="note" id="outZohm2">-</div></div>
+          <div class="result-card"><div class="label">R + jX secondaire</div><div class="value" id="outRX">-</div><div class="note" id="outRX2">-</div></div>
+          <div class="result-card"><div class="label">Court-circuit secondaire</div><div class="value" id="outIsc">-</div><div class="note" id="outIsc2">-</div></div>
+          <div class="result-card"><div class="label">Charge réelle</div><div class="value" id="outLoad">-</div><div class="note" id="outLoad2">-</div></div>
+          <div class="result-card"><div class="label">Pertes totales</div><div class="value" id="outLosses">-</div><div class="note" id="outLosses2">-</div></div>
+          <div class="result-card"><div class="label">Rendement estimé</div><div class="value" id="outEff">-</div><div class="note" id="outEff2">-</div></div>
+          <div class="result-card"><div class="label">Régulation approx.</div><div class="value" id="outReg">-</div><div class="note" id="outReg2">-</div></div>
+          <div class="result-card"><div class="label">Base secondaire</div><div class="value" id="outBase">-</div><div class="note" id="outBase2">-</div></div>
+          <div class="result-card"><div class="label">Énergie pertes annuelles</div><div class="value" id="outEnergy">-</div><div class="note" id="outEnergy2">Si charge constante</div></div>
+        </div>
+
+        <div class="chart-grid">
+          <canvas id="lossCanvas" width="640" height="420"></canvas>
+          <canvas id="impCanvas" width="640" height="420"></canvas>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr><th>Grandeur</th><th>Valeur</th><th>Commentaire</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Z base primaire</td><td id="tblZp">-</td><td>Base côté primaire</td></tr>
+            <tr><td>Z base secondaire</td><td id="tblZs">-</td><td>Base côté secondaire</td></tr>
+            <tr><td>Z pu</td><td id="tblZpu">-</td><td>Impédance en per unit</td></tr>
+            <tr><td>R pu + jX pu</td><td id="tblRXpu">-</td><td>Calculé à partir de %Z et X/R</td></tr>
+            <tr><td>Puissance de sortie</td><td id="tblOutput">-</td><td>À la charge indiquée</td></tr>
+            <tr><td>Pertes cuivre à la charge</td><td id="tblCuload">-</td><td>Varient avec le carré du courant</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const SQRT3 = Math.sqrt(3);
+    const $ = id => document.getElementById(id);
+    const imageInput = $("imageInput");
+
+    function applySavedBackground() {
+      const saved = localStorage.getItem("jsb-background-image");
+      if (saved) {
+        document.body.style.backgroundImage = "linear-gradient(var(--overlay), var(--overlay)), url('" + saved + "')";
+      }
+    }
+
+    imageInput.addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageData = e.target.result;
+        localStorage.setItem("jsb-background-image", imageData);
+        document.body.style.backgroundImage = "linear-gradient(var(--overlay), var(--overlay)), url('" + imageData + "')";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function resetBackground() {
+      localStorage.removeItem("jsb-background-image");
+      document.body.style.backgroundImage = "";
+    }
+
+    function val(id) { return parseFloat($(id).value); }
+    function fmtA(a) { return Math.abs(a) >= 1000 ? (a/1000).toFixed(3) + " kA" : a.toFixed(2) + " A"; }
+    function fmtV(v) { return Math.abs(v) >= 1000 ? (v/1000).toFixed(3) + " kV" : v.toFixed(1) + " V"; }
+    function fmtOhm(o) { return Math.abs(o) >= 1000 ? (o/1000).toFixed(4) + " kΩ" : o.toFixed(5) + " Ω"; }
+    function fmtKW(w) { return Math.abs(w) >= 1000 ? (w/1000).toFixed(3) + " MW" : w.toFixed(2) + " kW"; }
+    function fmtKVA(kva) { return Math.abs(kva) >= 1000 ? (kva/1000).toFixed(3) + " MVA" : kva.toFixed(2) + " kVA"; }
+    function fmtPct(p) { return p.toFixed(3) + " %"; }
+
+    function ratingKVA() {
+      const r = val("rating");
+      return $("ratingUnit").value === "MVA" ? r * 1000 : r;
+    }
+
+    function voltageV(raw) {
+      return $("voltageUnit").value === "kV" ? raw * 1000 : raw;
+    }
+
+    function lossKW(raw) {
+      return $("lossUnit").value === "W" ? raw / 1000 : raw;
+    }
+
+    function currentFor(kva, voltage, phaseMode) {
+      if (phaseMode === "three") return kva * 1000 / (SQRT3 * voltage);
+      return kva * 1000 / voltage;
+    }
+
+    function calculate() {
+      const phaseMode = $("phaseMode").value;
+      const kva = ratingKVA();
+      const Sva = kva * 1000;
+      const Vp = voltageV(val("vPrimary"));
+      const Vs = voltageV(val("vSecondary"));
+      const zPct = val("zPercent");
+      const zpu = zPct / 100;
+      const xr = Math.max(val("xrRatio"), 0.0001);
+      const sourceMVA = val("sourceMVA");
+      const coreKW = lossKW(val("coreLoss"));
+      const cuFullKW = lossKW(val("cuLoss"));
+      const loadPct = val("loadPercent") / 100;
+      const pf = Math.min(Math.max(val("pf"), 0.0001), 1);
+      const sign = $("loadType").value === "leading" ? -1 : 1;
+      const phi = Math.acos(pf);
+      const sinPhi = Math.sin(phi) * sign;
+
+      if (![kva,Vp,Vs,zPct,xr,coreKW,cuFullKW,loadPct,pf].every(Number.isFinite) || kva <= 0 || Vp <= 0 || Vs <= 0 || zpu <= 0) return;
+
+      const Ip = currentFor(kva, Vp, phaseMode);
+      const Is = currentFor(kva, Vs, phaseMode);
+      const ratio = Vp / Vs;
+
+      const zBaseS = phaseMode === "three" ? (Vs * Vs) / Sva : (Vs * Vs) / Sva;
+      const zBaseP = phaseMode === "three" ? (Vp * Vp) / Sva : (Vp * Vp) / Sva;
+      const zOhmS = zpu * zBaseS;
+      const zOhmP = zpu * zBaseP;
+
+      const rpu = zpu / Math.sqrt(1 + xr * xr);
+      const xpu = rpu * xr;
+      const rOhmS = rpu * zBaseS;
+      const xOhmS = xpu * zBaseS;
+
+      const transformerFaultA = Is / zpu;
+      let sourceLimitedFaultA = transformerFaultA;
+      let sourceNote = "Limité par %Z du transformateur seulement";
+      if (sourceMVA && sourceMVA > 0) {
+        const sourceFaultA = phaseMode === "three" ? sourceMVA * 1000000 / (SQRT3 * Vs) : sourceMVA * 1000000 / Vs;
+        sourceLimitedFaultA = 1 / (1 / transformerFaultA + 1 / sourceFaultA);
+        sourceNote = "Avec source amont en série équivalente";
+      }
+
+      const loadKVA = kva * loadPct;
+      const outputKW = loadKVA * pf;
+      const outputKVAR = loadKVA * Math.sin(phi) * sign;
+      const loadCurrent = Is * loadPct;
+      const cuLoadKW = cuFullKW * loadPct * loadPct;
+      const totalLossKW = coreKW + cuLoadKW;
+      const efficiency = outputKW > 0 ? outputKW / (outputKW + totalLossKW) * 100 : 0;
+      const regPU = loadPct * (rpu * pf + sign * xpu * Math.sin(phi));
+      const regPct = regPU * 100;
+      const annualLossMWh = totalLossKW * 8760 / 1000;
+
+      $("outIp").textContent = fmtA(Ip);
+      $("outIp2").textContent = "Côté primaire à " + fmtV(Vp);
+      $("outIs").textContent = fmtA(Is);
+      $("outIs2").textContent = "Côté secondaire à " + fmtV(Vs);
+      $("outRatio").textContent = ratio.toFixed(4) + " : 1";
+      $("outRatio2").textContent = "Vp / Vs";
+      $("outZohm").textContent = fmtOhm(zOhmS);
+      $("outZohm2").textContent = "Référée au secondaire";
+      $("outRX").textContent = fmtOhm(rOhmS) + " + j" + fmtOhm(xOhmS);
+      $("outRX2").textContent = "À partir de X/R = " + xr.toFixed(2);
+      $("outIsc").textContent = fmtA(sourceLimitedFaultA);
+      $("outIsc2").textContent = sourceNote;
+      $("outLoad").textContent = fmtKVA(loadKVA);
+      $("outLoad2").textContent = fmtKW(outputKW) + " + j" + fmtKW(Math.abs(outputKVAR)).replace("kW","kVAR").replace("MW","MVAR");
+      $("outLosses").textContent = fmtKW(totalLossKW);
+      $("outLosses2").textContent = "À " + (loadPct*100).toFixed(1) + " % de charge";
+      $("outEff").textContent = efficiency.toFixed(3) + " %";
+      $("outEff2").textContent = "Sortie / (sortie + pertes)";
+      $("outReg").textContent = fmtPct(regPct);
+      $("outReg2").textContent = sign > 0 ? "Approx. charge inductive" : "Approx. charge capacitive";
+      $("outBase").textContent = fmtOhm(zBaseS);
+      $("outBase2").textContent = "Zbase secondaire";
+      $("outEnergy").textContent = annualLossMWh.toFixed(2) + " MWh/an";
+      $("outEnergy2").textContent = "Hypothèse charge constante";
+
+      $("tblZp").textContent = fmtOhm(zBaseP);
+      $("tblZs").textContent = fmtOhm(zBaseS);
+      $("tblZpu").textContent = zpu.toFixed(5) + " pu, soit " + zPct.toFixed(3) + " %";
+      $("tblRXpu").textContent = rpu.toFixed(5) + " + j" + xpu.toFixed(5) + " pu";
+      $("tblOutput").textContent = fmtKW(outputKW) + ", " + fmtKVA(loadKVA) + ", I = " + fmtA(loadCurrent);
+      $("tblCuload").textContent = fmtKW(cuLoadKW) + " versus " + fmtKW(cuFullKW) + " pleine charge";
+
+      drawLossChart(coreKW, cuLoadKW, outputKW, efficiency);
+      drawImpedanceChart(rpu, xpu, zpu, xr);
+    }
+
+    function drawLossChart(core, cu, output, eff) {
+      const c = $("lossCanvas"), ctx = c.getContext("2d"), w = c.width, h = c.height;
+      ctx.clearRect(0,0,w,h);
+      ctx.fillStyle = "rgba(2,6,23,0.18)"; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 18px Arial"; ctx.fillText("Pertes et rendement", 24, 30);
+      const max = Math.max(core, cu, output * 0.05, 1);
+      const bars = [
+        {label:"Pertes à vide", value:core, color:"#38bdf8"},
+        {label:"Pertes cuivre", value:cu, color:"#f59e0b"},
+        {label:"Pertes totales", value:core+cu, color:"#ef4444"}
+      ];
+      const left = 42, top = 76, barH = 54, gap = 28, maxW = w - 150;
+      bars.forEach((b,i) => {
+        const y = top + i * (barH + gap);
+        ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(left, y, maxW, barH);
+        ctx.fillStyle = b.color; ctx.fillRect(left, y, Math.max(4, b.value / max * maxW), barH);
+        ctx.fillStyle = "#e2e8f0"; ctx.font = "14px Arial"; ctx.fillText(b.label, left, y - 8);
+        ctx.fillStyle = "#ffffff"; ctx.font = "bold 14px Arial"; ctx.fillText(b.value.toFixed(2) + " kW", left + 12, y + 34);
+      });
+      ctx.fillStyle = "#bbf7d0"; ctx.font = "bold 20px Arial"; ctx.fillText("η ≈ " + eff.toFixed(3) + " %", 24, h - 34);
+    }
+
+    function drawImpedanceChart(rpu, xpu, zpu, xr) {
+      const c = $("impCanvas"), ctx = c.getContext("2d"), w = c.width, h = c.height;
+      ctx.clearRect(0,0,w,h);
+      ctx.fillStyle = "rgba(2,6,23,0.18)"; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 18px Arial"; ctx.fillText("Triangle d'impédance R-X-Z", 24, 30);
+      const ox = 90, oy = h - 76;
+      const max = Math.max(rpu, xpu, zpu, 0.001);
+      const scale = Math.min((w-160)/max, (h-135)/max);
+      const rx = ox + rpu * scale;
+      const xy = oy - xpu * scale;
+      drawArrow(ctx, ox, oy, rx, oy, "#22c55e", 4);
+      drawArrow(ctx, rx, oy, rx, xy, "#f59e0b", 4);
+      drawArrow(ctx, ox, oy, rx, xy, "#ffffff", 5);
+      ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(36, oy); ctx.lineTo(w-34, oy); ctx.moveTo(ox, h-34); ctx.lineTo(ox, 58); ctx.stroke();
+      ctx.fillStyle = "#bbf7d0"; ctx.font = "14px Arial"; ctx.fillText("Rpu", rx + 8, oy + 22);
+      ctx.fillStyle = "#fde68a"; ctx.fillText("Xpu", rx + 8, xy - 8);
+      ctx.fillStyle = "#ffffff"; ctx.fillText("Zpu", (ox + rx)/2 + 8, (oy + xy)/2 - 8);
+      ctx.fillStyle = "#cbd5e1"; ctx.fillText("X/R = " + xr.toFixed(2) + ", Z = " + zpu.toFixed(5) + " pu", 24, h - 24);
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color, width) {
+      const head = 12;
+      const angle = Math.atan2(y2-y1, x2-x1);
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x2,y2);
+      ctx.lineTo(x2 - head*Math.cos(angle-Math.PI/6), y2 - head*Math.sin(angle-Math.PI/6));
+      ctx.lineTo(x2 - head*Math.cos(angle+Math.PI/6), y2 - head*Math.sin(angle+Math.PI/6));
+      ctx.closePath(); ctx.fill();
+    }
+
+    function loadExample() {
+      $("phaseMode").value = "three";
+      $("ratingUnit").value = "kVA";
+      $("rating").value = "2500";
+      $("freq").value = "60";
+      $("voltageUnit").value = "V";
+      $("vPrimary").value = "25000";
+      $("vSecondary").value = "600";
+      $("zPercent").value = "5.75";
+      $("xrRatio").value = "8";
+      $("sourceMVA").value = "0";
+      $("lossUnit").value = "kW";
+      $("coreLoss").value = "3.5";
+      $("cuLoss").value = "22";
+      $("loadPercent").value = "75";
+      $("pf").value = "0.90";
+      $("loadType").value = "lagging";
+      calculate();
+    }
+
+    applySavedBackground();
+    calculate();
+  </script>
+</body>
+</html>

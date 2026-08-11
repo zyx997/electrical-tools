@@ -229,6 +229,43 @@
       }
     }
 
+
+    .project-box {
+      margin-bottom: 18px;
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(56, 189, 248, 0.10);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+    }
+
+    .project-box h3 {
+      margin-top: 0;
+    }
+
+    .project-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .project-actions.single {
+      grid-template-columns: 1fr;
+    }
+
+    .project-status {
+      margin-top: 10px;
+      color: #bbf7d0;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    @media (max-width: 650px) {
+      .project-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media print {
       body { background: white !important; color: black !important; }
       body::before, body::after, .topbar, .menu, .actions, .report-actions, .copy-status { display: none !important; }
@@ -300,6 +337,31 @@
     <section class="layout">
       <aside class="panel">
         <h2>Entrées</h2>
+
+
+        <div class="project-box">
+          <h3>0. Système de projets</h3>
+          <div class="field-grid">
+            <div>
+              <label for="projectSelect">Projet sauvegardé</label>
+              <select id="projectSelect" onchange="loadSelectedProject()">
+                <option value="">-- Aucun projet sélectionné --</option>
+              </select>
+            </div>
+            <div>
+              <label for="projectName">Nom</label>
+              <input id="projectName" type="text" value="Barres aluminium 70 kA">
+            </div>
+          </div>
+          <div class="project-actions">
+            <button class="btn primary" type="button" onclick="saveCurrentProject()">Sauvegarder</button>
+            <button class="btn secondary" type="button" onclick="deleteSelectedProject()">Supprimer</button>
+          </div>
+          <div class="project-actions single">
+            <button class="btn secondary" type="button" onclick="newProjectFromCurrent()">Nouveau projet à partir des valeurs actuelles</button>
+          </div>
+          <div class="project-status" id="projectStatus"></div>
+        </div>
 
         <h3>1. Courant et configuration</h3>
         <div class="field-grid three">
@@ -859,6 +921,148 @@
       });
     }
 
+
+    const PROJECT_STORAGE_KEY = "busbar_projects_v1";
+    const LAST_PROJECT_KEY = "busbar_last_project_v1";
+
+    function projectFields() {
+      return Array.from(document.querySelectorAll("input, select"))
+        .filter(function(el) {
+          return el.id && el.type !== "file" && el.id !== "projectSelect" && el.id !== "projectName";
+        });
+    }
+
+    function getProjects() {
+      try {
+        return JSON.parse(localStorage.getItem(PROJECT_STORAGE_KEY)) || {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function setProjects(projects) {
+      localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(projects));
+    }
+
+    function collectCurrentInputs() {
+      const values = {};
+      projectFields().forEach(function(el) {
+        values[el.id] = el.value;
+      });
+      return values;
+    }
+
+    function applyInputs(values) {
+      Object.keys(values || {}).forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = values[id];
+      });
+      calculate();
+    }
+
+    function refreshProjectList(selectedName) {
+      const select = document.getElementById("projectSelect");
+      if (!select) return;
+      const projects = getProjects();
+      const names = Object.keys(projects).sort(function(a,b) { return a.localeCompare(b); });
+      select.innerHTML = "<option value=''>-- Aucun projet sélectionné --</option>";
+      names.forEach(function(name) {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+      if (selectedName && projects[selectedName]) select.value = selectedName;
+    }
+
+    function setProjectStatus(message) {
+      const status = document.getElementById("projectStatus");
+      if (status) status.innerText = message || "";
+    }
+
+    function saveCurrentProject() {
+      const nameEl = document.getElementById("projectName");
+      const name = (nameEl && nameEl.value ? nameEl.value.trim() : "");
+      if (!name) {
+        setProjectStatus("Entre un nom de projet avant de sauvegarder.");
+        return;
+      }
+      const projects = getProjects();
+      projects[name] = {
+        savedAt: new Date().toLocaleString("fr-CA"),
+        values: collectCurrentInputs()
+      };
+      setProjects(projects);
+      localStorage.setItem(LAST_PROJECT_KEY, name);
+      refreshProjectList(name);
+      setProjectStatus("Projet sauvegardé : " + name);
+    }
+
+    function loadSelectedProject() {
+      const select = document.getElementById("projectSelect");
+      if (!select || !select.value) return;
+      const name = select.value;
+      const projects = getProjects();
+      if (!projects[name]) return;
+      const nameEl = document.getElementById("projectName");
+      if (nameEl) nameEl.value = name;
+      applyInputs(projects[name].values);
+      localStorage.setItem(LAST_PROJECT_KEY, name);
+      setProjectStatus("Projet chargé : " + name + (projects[name].savedAt ? " | sauvegardé le " + projects[name].savedAt : ""));
+    }
+
+    function deleteSelectedProject() {
+      const select = document.getElementById("projectSelect");
+      if (!select || !select.value) {
+        setProjectStatus("Aucun projet sélectionné à supprimer.");
+        return;
+      }
+      const name = select.value;
+      const projects = getProjects();
+      delete projects[name];
+      setProjects(projects);
+      localStorage.removeItem(LAST_PROJECT_KEY);
+      refreshProjectList("");
+      setProjectStatus("Projet supprimé : " + name);
+    }
+
+    function newProjectFromCurrent() {
+      const nameEl = document.getElementById("projectName");
+      if (nameEl) nameEl.value = "Nouveau busbar " + new Date().toLocaleString("fr-CA");
+      const select = document.getElementById("projectSelect");
+      if (select) select.value = "";
+      localStorage.removeItem(LAST_PROJECT_KEY);
+      setProjectStatus("Nouveau projet : ajuste les valeurs puis clique sur Sauvegarder.");
+    }
+
+    function autoSaveLastProject() {
+      const last = localStorage.getItem(LAST_PROJECT_KEY);
+      if (!last) return;
+      const projects = getProjects();
+      if (!projects[last]) return;
+      projects[last] = {
+        savedAt: new Date().toLocaleString("fr-CA"),
+        values: collectCurrentInputs()
+      };
+      setProjects(projects);
+    }
+
+    function initProjectSystem() {
+      refreshProjectList(localStorage.getItem(LAST_PROJECT_KEY));
+      const last = localStorage.getItem(LAST_PROJECT_KEY);
+      const projects = getProjects();
+      if (last && projects[last]) {
+        const nameEl = document.getElementById("projectName");
+        if (nameEl) nameEl.value = last;
+        applyInputs(projects[last].values);
+        setProjectStatus("Dernier projet restauré : " + last);
+      }
+      projectFields().forEach(function(el) {
+        el.addEventListener("input", autoSaveLastProject);
+        el.addEventListener("change", autoSaveLastProject);
+      });
+    }
+
     function getCleanText(selector) { const e = document.querySelector(selector); return e ? e.innerText.replace(/\n{3,}/g,"\n\n").trim() : ""; }
     function getInputSummary() {
       const rows=[];
@@ -891,6 +1095,7 @@
 
     addTooltips();
     applySavedBackground();
+    initProjectSystem();
     calculate();
   </script>
 </body>

@@ -1,297 +1,816 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur triphasé détaillé - JSB Electrical Tools</title>
+  <style>
+    :root {
+      --overlay: rgba(3, 7, 18, 0.76);
+      --panel: rgba(15, 23, 42, 0.72);
+      --panel-soft: rgba(255, 255, 255, 0.10);
+      --border: rgba(255, 255, 255, 0.18);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --accent: #38bdf8;
+      --accent2: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    * { box-sizing: border-box; }
 
-<title>Calculateur Triphasé</title>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(var(--overlay), var(--overlay)),
+        radial-gradient(circle at 20% 15%, rgba(56, 189, 248, 0.24), transparent 30%),
+        radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.16), transparent 28%),
+        radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.16), transparent 32%),
+        #020617;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
 
-<style>
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.18;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0.45));
+    }
 
-body{
-    margin:0;
-    font-family:Arial, Helvetica, sans-serif;
-    color:white;
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.28;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700' viewBox='0 0 1200 700'%3E%3Cg fill='none' stroke-linecap='round' stroke-width='4'%3E%3Cpath d='M80 340 C160 180 240 500 320 340 S480 180 560 340 S720 500 800 340 S960 180 1040 340 S1160 500 1240 340' stroke='%2338bdf8'/%3E%3Cpath d='M80 340 C160 500 240 180 320 340 S480 500 560 340 S720 180 800 340 S960 500 1040 340 S1160 180 1240 340' stroke='%2322c55e'/%3E%3Cpath d='M80 340 C160 340 240 340 320 340 S480 340 560 340 S720 340 800 340 S960 340 1040 340 S1160 340 1240 340' stroke='%23f59e0b' stroke-dasharray='10 18'/%3E%3Ccircle cx='980' cy='150' r='95' stroke='%23ffffff' opacity='0.55'/%3E%3Cpath d='M980 150 L1070 150 M980 150 L935 72 M980 150 L935 228' stroke='%23ffffff' opacity='0.65'/%3E%3Ctext x='1078' y='158' font-family='Arial' font-size='28' fill='%23ffffff'%3EA%3C/text%3E%3Ctext x='910' y='68' font-family='Arial' font-size='28' fill='%23ffffff'%3EB%3C/text%3E%3Ctext x='910' y='246' font-family='Arial' font-size='28' fill='%23ffffff'%3EC%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+      mix-blend-mode: screen;
+    }
 
-    background:
-    linear-gradient(
-        rgba(0,0,0,0.7),
-        rgba(0,0,0,0.7)
-    ),
-    url("https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=1900&q=80");
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 24px;
+      background: rgba(2, 6, 23, 0.82);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
 
-    background-size:cover;
-    background-position:center;
-    background-attachment:fixed;
-}
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
-.container{
+    .brand strong { font-size: 20px; }
+    .brand span { color: var(--muted); font-size: 13px; }
 
-    max-width:1000px;
-    margin:auto;
-    padding:30px;
-}
+    .menu {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
 
-.card{
+    .btn, .menu label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.10);
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
 
-    background:rgba(255,255,255,0.10);
+    .btn:hover, .menu label:hover { background: rgba(255,255,255,0.18); }
+    #imageInput { display: none; }
 
-    backdrop-filter:blur(12px);
+    .wrap {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 34px 22px 60px;
+    }
 
-    border-radius:20px;
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
 
-    padding:30px;
-}
+    .hero-card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.32);
+      backdrop-filter: blur(18px);
+    }
 
-h1{
+    .hero-card { padding: 28px; }
 
-    text-align:center;
-}
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 1.05;
+    }
 
-.grid{
+    .subtitle {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
+    }
 
-    display:grid;
+    .formula-box {
+      padding: 22px;
+      display: grid;
+      gap: 12px;
+    }
 
-    grid-template-columns:
-    repeat(auto-fit,minmax(250px,1fr));
+    .formula-box h2 { margin: 0; font-size: 20px; }
+    .formula { color: #e0f2fe; line-height: 1.55; font-size: 15px; }
 
-    gap:20px;
-}
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 22px;
+    }
 
-.field{
+    .panel { padding: 22px; }
+    .panel h2 { margin: 0 0 16px; font-size: 22px; }
+    .panel h3 { margin: 20px 0 12px; font-size: 17px; color: #e2e8f0; }
 
-    display:flex;
-    flex-direction:column;
-}
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 110px;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 13px;
+    }
 
-label{
+    label {
+      display: block;
+      color: #e2e8f0;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
 
-    margin-bottom:5px;
-}
+    input, select {
+      width: 100%;
+      padding: 12px 12px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      color: white;
+      background: rgba(15, 23, 42, 0.76);
+      outline: none;
+      font-size: 15px;
+    }
 
-input{
+    select option { background: #0f172a; color: white; }
 
-    padding:10px;
-    border:none;
-    border-radius:8px;
-}
+    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,0.14); }
 
-button{
+    .radio-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
 
-    padding:14px;
-    margin-top:25px;
+    .radio-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      border-radius: 15px;
+      cursor: pointer;
+    }
 
-    width:100%;
+    .radio-card input { width: auto; margin-right: 6px; }
 
-    border:none;
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
 
-    border-radius:10px;
+    .primary {
+      background: linear-gradient(135deg, #0284c7, #22c55e);
+      color: white;
+      border: 0;
+      font-weight: bold;
+    }
 
-    background:#0094ff;
+    .secondary { background: rgba(255,255,255,0.10); }
 
-    color:white;
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
 
-    font-size:18px;
+    .result-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      min-height: 105px;
+    }
 
-    cursor:pointer;
-}
+    .result-card .label { color: var(--muted); font-size: 13px; }
+    .result-card .value { margin-top: 8px; font-size: 25px; font-weight: bold; }
+    .result-card .note { margin-top: 6px; color: #cbd5e1; font-size: 12px; line-height: 1.4; }
 
-button:hover{
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
 
-    background:#0070c0;
-}
+    canvas {
+      width: 100%;
+      min-height: 330px;
+      border-radius: 22px;
+      background: rgba(2, 6, 23, 0.58);
+      border: 1px solid var(--border);
+    }
 
-.resultats{
+    .warning {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.30);
+      color: #fde68a;
+      font-size: 13px;
+      line-height: 1.45;
+    }
 
-    margin-top:30px;
-}
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      overflow: hidden;
+      border-radius: 16px;
+      font-size: 14px;
+    }
 
-.result{
+    .table th, .table td {
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      padding: 11px 10px;
+      text-align: left;
+    }
 
-    padding:12px;
+    .table th { color: #bae6fd; background: rgba(56,189,248,0.12); }
+    .table td { color: #e2e8f0; }
 
-    background:rgba(255,255,255,0.15);
+    @media (max-width: 1050px) {
+      .hero, .layout, .chart-grid { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
 
-    margin-bottom:10px;
-
-    border-radius:8px;
-
-    font-size:20px;
-}
-
-.menu{
-
-    margin-bottom:20px;
-}
-
-.menu a{
-
-    color:white;
-
-    text-decoration:none;
-}
-
-</style>
-
+    @media (max-width: 640px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .menu { width: 100%; }
+      .btn, .menu label { flex: 1; }
+      .field-grid { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: 1fr; }
+      .actions { grid-template-columns: 1fr; }
+      canvas { min-height: 280px; }
+    }
+  </style>
 </head>
-
 <body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>JSB Electrical Tools</strong>
+      <span>Calculateur triphasé détaillé</span>
+    </div>
+    <div class="menu">
+      <a class="btn" href="index.html">⬅ Retour au portail</a>
+      <label for="imageInput">Changer le fond</label>
+      <input id="imageInput" type="file" accept="image/*">
+      <button class="btn" type="button" onclick="resetBackground()">Fond triphasé</button>
+    </div>
+  </header>
 
-<div class="container">
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-card">
+        <h1>Calculateur triphasé avancé</h1>
+        <p class="subtitle">
+          Calcule les grandeurs principales d'un réseau triphasé équilibré : tension ligne-ligne,
+          tension de phase, courant ligne, courant de phase, kW, MW, kVA, MVA, kVAR, angle de facteur de puissance,
+          composante réelle, composante imaginaire et impédance équivalente par phase.
+        </p>
+      </div>
+      <div class="panel formula-box">
+        <h2>Relations utilisées</h2>
+        <div class="formula">
+          S = √3 × V<sub>LL</sub> × I<sub>L</sub><br>
+          P = S × PF<br>
+          Q = S × sin(acos(PF))<br>
+          Étoile : V<sub>ph</sub> = V<sub>LL</sub> / √3 et I<sub>ph</sub> = I<sub>L</sub><br>
+          Delta : V<sub>ph</sub> = V<sub>LL</sub> et I<sub>ph</sub> = I<sub>L</sub> / √3
+        </div>
+      </div>
+    </section>
 
-<div class="menu">
+    <section class="layout">
+      <aside class="panel">
+        <h2>Entrées</h2>
 
-<a href="index.html">
-⬅ Retour au portail
-</a>
+        <h3>1. Grandeur connue</h3>
+        <div class="field-grid">
+          <div>
+            <label for="knownType">Type de valeur connue</label>
+            <select id="knownType" onchange="refreshLabels(); calculate();">
+              <option value="P">Puissance active P</option>
+              <option value="S">Puissance apparente S</option>
+              <option value="I">Courant de ligne I</option>
+              <option value="Q">Puissance réactive Q</option>
+            </select>
+          </div>
+          <div>
+            <label for="knownUnit">Unité</label>
+            <select id="knownUnit" onchange="calculate();"></select>
+          </div>
+        </div>
 
-</div>
+        <div class="field-grid">
+          <div>
+            <label id="knownValueLabel" for="knownValue">Valeur</label>
+            <input id="knownValue" type="number" step="any" value="1000" oninput="calculate();">
+          </div>
+          <div>
+            <label for="pf">PF</label>
+            <input id="pf" type="number" step="0.001" min="0" max="1" value="0.95" oninput="calculate();">
+          </div>
+        </div>
 
-<div class="card">
+        <h3>2. Tension</h3>
+        <div class="field-grid">
+          <div>
+            <label for="voltageMode">Type de tension entrée</label>
+            <select id="voltageMode" onchange="calculate();">
+              <option value="LL">Tension ligne-ligne</option>
+              <option value="PH">Tension de phase</option>
+            </select>
+          </div>
+          <div>
+            <label for="voltageUnit">Unité</label>
+            <select id="voltageUnit" onchange="calculate();">
+              <option value="V">V</option>
+              <option value="kV">kV</option>
+            </select>
+          </div>
+        </div>
 
-<h1>Calculateur Triphasé</h1>
+        <div class="field-grid">
+          <div>
+            <label for="voltageValue">Valeur tension</label>
+            <input id="voltageValue" type="number" step="any" value="600" oninput="calculate();">
+          </div>
+          <div>
+            <label for="loadSign">Type Q</label>
+            <select id="loadSign" onchange="calculate();">
+              <option value="lagging">Inductif</option>
+              <option value="leading">Capacitif</option>
+            </select>
+          </div>
+        </div>
 
-<div class="grid">
+        <h3>3. Configuration</h3>
+        <div class="radio-row">
+          <label class="radio-card"><input type="radio" name="connection" value="wye" checked onchange="calculate();"> Étoile / Wye</label>
+          <label class="radio-card"><input type="radio" name="connection" value="delta" onchange="calculate();"> Delta</label>
+        </div>
 
-<div class="field">
-<label>Tension ligne-ligne (V)</label>
-<input id="v" value="600">
-</div>
+        <div class="actions">
+          <button class="btn primary" type="button" onclick="calculate();">Calculer</button>
+          <button class="btn secondary" type="button" onclick="loadExample();">Exemple 600 V</button>
+        </div>
 
-<div class="field">
-<label>Puissance active (kW)</label>
-<input id="kw" value="1000">
-</div>
+        <div class="warning">
+          Hypothèse : système triphasé équilibré sinusoïdal. Pour conception finale, protection, arc flash,
+          coordination ou acceptation d'équipement, valider avec les normes et outils d'ingénierie applicables.
+        </div>
+      </aside>
 
-<div class="field">
-<label>Facteur de puissance</label>
-<input id="pf" value="0.95">
-</div>
+      <section class="panel">
+        <h2>Résultats calculés</h2>
+        <div class="results-grid">
+          <div class="result-card"><div class="label">Puissance active P</div><div class="value" id="outP">-</div><div class="note" id="outP2">-</div></div>
+          <div class="result-card"><div class="label">Puissance apparente S</div><div class="value" id="outS">-</div><div class="note" id="outS2">-</div></div>
+          <div class="result-card"><div class="label">Puissance réactive Q</div><div class="value" id="outQ">-</div><div class="note" id="outQ2">-</div></div>
+          <div class="result-card"><div class="label">Courant de ligne</div><div class="value" id="outIL">-</div><div class="note" id="outIL2">-</div></div>
+          <div class="result-card"><div class="label">Tension ligne-ligne</div><div class="value" id="outVLL">-</div><div class="note" id="outVLL2">-</div></div>
+          <div class="result-card"><div class="label">Tension de phase</div><div class="value" id="outVPH">-</div><div class="note" id="outVPH2">-</div></div>
+          <div class="result-card"><div class="label">Courant de phase</div><div class="value" id="outIPH">-</div><div class="note" id="outIPH2">-</div></div>
+          <div class="result-card"><div class="label">Angle φ</div><div class="value" id="outAngle">-</div><div class="note" id="outAngle2">-</div></div>
+          <div class="result-card"><div class="label">Impédance par phase</div><div class="value" id="outZ">-</div><div class="note" id="outZX">-</div></div>
+        </div>
 
-</div>
+        <div class="chart-grid">
+          <canvas id="pqCanvas" width="640" height="420"></canvas>
+          <canvas id="waveCanvas" width="640" height="420"></canvas>
+        </div>
 
-<button onclick="calculer()">
-Calculer
-</button>
+        <table class="table">
+          <thead>
+            <tr><th>Grandeur complexe</th><th>Valeur</th><th>Interprétation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>S complexe</td><td id="complexS">-</td><td>Partie réelle = P, partie imaginaire = Q</td></tr>
+            <tr><td>Facteur de puissance</td><td id="complexPF">-</td><td>Indique le déphasage entre tension et courant</td></tr>
+            <tr><td>Charge équivalente par phase</td><td id="complexZ">-</td><td>R + jX selon la connexion choisie</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+  </main>
 
-<div class="resultats">
+  <script>
+    const SQRT3 = Math.sqrt(3);
+    const ids = id => document.getElementById(id);
+    const imageInput = ids("imageInput");
 
-<div class="result" id="kvaResult">
-kVA :
-</div>
+    function applySavedBackground() {
+      const saved = localStorage.getItem("jsb-background-image");
+      if (saved) {
+        document.body.style.backgroundImage =
+          "linear-gradient(var(--overlay), var(--overlay)), url('" + saved + "')";
+      }
+    }
 
-<div class="result" id="currentResult">
-Courant :
-</div>
+    imageInput.addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageData = e.target.result;
+        localStorage.setItem("jsb-background-image", imageData);
+        document.body.style.backgroundImage =
+          "linear-gradient(var(--overlay), var(--overlay)), url('" + imageData + "')";
+      };
+      reader.readAsDataURL(file);
+    });
 
-<div class="result" id="mwResult">
-MW :
-</div>
+    function resetBackground() {
+      localStorage.removeItem("jsb-background-image");
+      document.body.style.backgroundImage = "";
+    }
 
-<div class="result" id="mvaResult">
-MVA :
-</div>
+    function setOptions(select, options) {
+      const current = select.value;
+      select.innerHTML = "";
+      options.forEach(o => {
+        const opt = document.createElement("option");
+        opt.value = o.value;
+        opt.textContent = o.label;
+        select.appendChild(opt);
+      });
+      if (options.some(o => o.value === current)) select.value = current;
+    }
 
-<div class="result" id="kvarResult">
-kVAR :
-</div>
+    function refreshLabels() {
+      const type = ids("knownType").value;
+      const unit = ids("knownUnit");
+      if (type === "P") {
+        ids("knownValueLabel").textContent = "Puissance active P";
+        setOptions(unit, [{value:"kW",label:"kW"},{value:"MW",label:"MW"},{value:"W",label:"W"}]);
+      } else if (type === "S") {
+        ids("knownValueLabel").textContent = "Puissance apparente S";
+        setOptions(unit, [{value:"kVA",label:"kVA"},{value:"MVA",label:"MVA"},{value:"VA",label:"VA"}]);
+      } else if (type === "I") {
+        ids("knownValueLabel").textContent = "Courant de ligne I";
+        setOptions(unit, [{value:"A",label:"A"},{value:"kA",label:"kA"}]);
+      } else {
+        ids("knownValueLabel").textContent = "Puissance réactive Q";
+        setOptions(unit, [{value:"kVAR",label:"kVAR"},{value:"MVAR",label:"MVAR"},{value:"VAR",label:"VAR"}]);
+      }
+    }
 
-</div>
+    function getConnection() {
+      return document.querySelector("input[name='connection']:checked").value;
+    }
 
-</div>
+    function toVA(value, unit) {
+      if (unit === "W" || unit === "VA" || unit === "VAR") return value;
+      if (unit === "kW" || unit === "kVA" || unit === "kVAR") return value * 1000;
+      if (unit === "MW" || unit === "MVA" || unit === "MVAR") return value * 1000000;
+      return value;
+    }
 
-</div>
+    function toV(value, unit) {
+      return unit === "kV" ? value * 1000 : value;
+    }
 
-<script>
+    function toA(value, unit) {
+      return unit === "kA" ? value * 1000 : value;
+    }
 
-const savedBackground =
-localStorage.getItem(
-"jsb-background-image"
-);
+    function formatPower(watts, base) {
+      const abs = Math.abs(watts);
+      if (base === "P") {
+        if (abs >= 1000000) return (watts / 1000000).toFixed(3) + " MW";
+        if (abs >= 1000) return (watts / 1000).toFixed(2) + " kW";
+        return watts.toFixed(1) + " W";
+      }
+      if (base === "S") {
+        if (abs >= 1000000) return (watts / 1000000).toFixed(3) + " MVA";
+        if (abs >= 1000) return (watts / 1000).toFixed(2) + " kVA";
+        return watts.toFixed(1) + " VA";
+      }
+      if (abs >= 1000000) return (watts / 1000000).toFixed(3) + " MVAR";
+      if (abs >= 1000) return (watts / 1000).toFixed(2) + " kVAR";
+      return watts.toFixed(1) + " VAR";
+    }
 
-if(savedBackground){
+    function fmtV(v) {
+      return Math.abs(v) >= 1000 ? (v / 1000).toFixed(3) + " kV" : v.toFixed(1) + " V";
+    }
 
-document.body.style.backgroundImage =
-"linear-gradient(rgba(0,0,0,0.75),rgba(0,0,0,0.75)), url('" +
-savedBackground +
-"')";
+    function fmtA(a) {
+      return Math.abs(a) >= 1000 ? (a / 1000).toFixed(3) + " kA" : a.toFixed(2) + " A";
+    }
 
-}
+    function fmtOhm(z) {
+      if (!isFinite(z)) return "-";
+      if (Math.abs(z) >= 1000) return (z / 1000).toFixed(3) + " kΩ";
+      return z.toFixed(4) + " Ω";
+    }
 
-function calculer(){
+    function calculate() {
+      const type = ids("knownType").value;
+      const known = parseFloat(ids("knownValue").value);
+      const unit = ids("knownUnit").value;
+      let pf = parseFloat(ids("pf").value);
+      const voltageInput = parseFloat(ids("voltageValue").value);
+      const voltageUnit = ids("voltageUnit").value;
+      const voltageMode = ids("voltageMode").value;
+      const sign = ids("loadSign").value === "leading" ? -1 : 1;
+      const connection = getConnection();
 
-let V =
-parseFloat(
-document.getElementById("v").value
-);
+      if (!isFinite(known) || !isFinite(voltageInput) || !isFinite(pf) || pf <= 0 || pf > 1) {
+        return;
+      }
 
-let kW =
-parseFloat(
-document.getElementById("kw").value
-);
+      let VLL = 0;
+      let VPH = 0;
+      const enteredV = toV(voltageInput, voltageUnit);
 
-let PF =
-parseFloat(
-document.getElementById("pf").value
-);
+      if (voltageMode === "LL") {
+        VLL = enteredV;
+        VPH = connection === "wye" ? VLL / SQRT3 : VLL;
+      } else {
+        VPH = enteredV;
+        VLL = connection === "wye" ? VPH * SQRT3 : VPH;
+      }
 
-let kVA =
-kW/PF;
+      let P = 0, S = 0, Q = 0, IL = 0;
+      const angle = Math.acos(pf);
+      const sinPhi = Math.sin(angle);
 
-let courant =
-(kVA*1000) /
-(1.732*V);
+      if (type === "P") {
+        P = toVA(known, unit);
+        S = P / pf;
+        Q = sign * S * sinPhi;
+        IL = S / (SQRT3 * VLL);
+      } else if (type === "S") {
+        S = toVA(known, unit);
+        P = S * pf;
+        Q = sign * S * sinPhi;
+        IL = S / (SQRT3 * VLL);
+      } else if (type === "I") {
+        IL = toA(known, unit);
+        S = SQRT3 * VLL * IL;
+        P = S * pf;
+        Q = sign * S * sinPhi;
+      } else if (type === "Q") {
+        Q = sign * Math.abs(toVA(known, unit));
+        S = Math.abs(Q) / sinPhi;
+        P = S * pf;
+        IL = S / (SQRT3 * VLL);
+      }
 
-let MW =
-kW/1000;
+      const IPH = connection === "wye" ? IL : IL / SQRT3;
+      const zMag = IPH > 0 ? VPH / IPH : Infinity;
+      const R = zMag * pf;
+      const X = sign * zMag * sinPhi;
+      const angleDeg = angle * 180 / Math.PI;
+      const angleText = (sign < 0 ? "-" : "") + angleDeg.toFixed(2) + "°";
 
-let MVA =
-kVA/1000;
+      ids("outP").textContent = formatPower(P, "P");
+      ids("outP2").textContent = (P / 1000000).toFixed(5) + " MW";
+      ids("outS").textContent = formatPower(S, "S");
+      ids("outS2").textContent = (S / 1000000).toFixed(5) + " MVA";
+      ids("outQ").textContent = formatPower(Q, "Q");
+      ids("outQ2").textContent = sign > 0 ? "Q positif, charge inductive" : "Q négatif, charge capacitive";
+      ids("outIL").textContent = fmtA(IL);
+      ids("outIL2").textContent = "Courant dans les conducteurs de ligne";
+      ids("outVLL").textContent = fmtV(VLL);
+      ids("outVLL2").textContent = "Tension entre phases";
+      ids("outVPH").textContent = fmtV(VPH);
+      ids("outVPH2").textContent = connection === "wye" ? "VLL / √3 en étoile" : "Égale à VLL en delta";
+      ids("outIPH").textContent = fmtA(IPH);
+      ids("outIPH2").textContent = connection === "wye" ? "Égale à IL en étoile" : "IL / √3 en delta";
+      ids("outAngle").textContent = angleText;
+      ids("outAngle2").textContent = "PF = cos φ = " + pf.toFixed(3);
+      ids("outZ").textContent = fmtOhm(zMag);
+      ids("outZX").textContent = "R = " + fmtOhm(R) + ", X = " + fmtOhm(X);
+      ids("complexS").textContent = formatPower(P, "P") + " " + (Q >= 0 ? "+ j" : "- j") + formatPower(Math.abs(Q), "Q");
+      ids("complexPF").textContent = pf.toFixed(3) + " " + (sign > 0 ? "lagging / inductif" : "leading / capacitif") + ", φ = " + angleText;
+      ids("complexZ").textContent = fmtOhm(R) + " " + (X >= 0 ? "+ j" : "- j") + fmtOhm(Math.abs(X));
 
-let kvar =
-Math.sqrt(
-(kVA*kVA) -
-(kW*kW)
-);
+      drawPQ(P, Q, S, pf, angleDeg, sign);
+      drawWaves(sign, angleDeg);
+    }
 
-document.getElementById(
-"kvaResult"
-).innerHTML =
-"kVA : " +
-kVA.toFixed(2);
+    function drawAxes(ctx, w, h, originX, originY) {
+      ctx.strokeStyle = "rgba(255,255,255,0.22)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(36, originY);
+      ctx.lineTo(w - 28, originY);
+      ctx.moveTo(originX, h - 34);
+      ctx.lineTo(originX, 28);
+      ctx.stroke();
 
-document.getElementById(
-"currentResult"
-).innerHTML =
-"Courant : " +
-courant.toFixed(1) +
-" A";
+      ctx.fillStyle = "rgba(255,255,255,0.78)";
+      ctx.font = "14px Arial";
+      ctx.fillText("P réel", w - 76, originY - 10);
+      ctx.fillText("Q imaginaire", originX + 10, 42);
+    }
 
-document.getElementById(
-"mwResult"
-).innerHTML =
-"MW : " +
-MW.toFixed(4);
+    function drawArrow(ctx, x1, y1, x2, y2, color, width) {
+      const head = 12;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - head * Math.cos(angle - Math.PI / 6), y2 - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - head * Math.cos(angle + Math.PI / 6), y2 - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
 
-document.getElementById(
-"mvaResult"
-).innerHTML =
-"MVA : " +
-MVA.toFixed(4);
+    function drawPQ(P, Q, S, pf, angleDeg, sign) {
+      const canvas = ids("pqCanvas");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(2,6,23,0.18)";
+      ctx.fillRect(0,0,w,h);
 
-document.getElementById(
-"kvarResult"
-).innerHTML =
-"kVAR : " +
-kvar.toFixed(2);
+      const ox = 90;
+      const oy = h / 2;
+      drawAxes(ctx, w, h, ox, oy);
 
-}
+      const maxVal = Math.max(Math.abs(P), Math.abs(Q), Math.abs(S), 1);
+      const scale = Math.min((w - 160) / maxVal, (h / 2 - 55) / maxVal);
+      const px = ox + P * scale;
+      const qy = oy - Q * scale;
 
-calculer();
+      drawArrow(ctx, ox, oy, px, oy, "#22c55e", 4);
+      drawArrow(ctx, px, oy, px, qy, Q >= 0 ? "#f59e0b" : "#38bdf8", 4);
+      drawArrow(ctx, ox, oy, px, qy, "#f8fafc", 5);
 
-</script>
+      ctx.setLineDash([8, 8]);
+      ctx.strokeStyle = "rgba(255,255,255,0.36)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(px, oy);
+      ctx.lineTo(px, qy);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText("Triangle P-Q-S", 24, 30);
+      ctx.font = "14px Arial";
+      ctx.fillStyle = "#bbf7d0";
+      ctx.fillText("P", Math.min(px + 8, w - 45), oy + 24);
+      ctx.fillStyle = Q >= 0 ? "#fde68a" : "#bae6fd";
+      ctx.fillText("Q", Math.min(px + 10, w - 45), qy - 10);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText("S", (ox + px) / 2 + 10, (oy + qy) / 2 - 10);
+      ctx.fillStyle = "#cbd5e1";
+      ctx.fillText("PF = " + pf.toFixed(3) + ", φ = " + (sign < 0 ? "-" : "") + angleDeg.toFixed(2) + "°", 24, h - 24);
+    }
+
+    function drawWaves(sign, angleDeg) {
+      const canvas = ids("waveCanvas");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(2,6,23,0.18)";
+      ctx.fillRect(0,0,w,h);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText("Ondes triphasées équilibrées", 24, 30);
+
+      const mid = h / 2 + 22;
+      const amp = 72;
+      const left = 36;
+      const right = w - 24;
+      const len = right - left;
+      const phaseShift = sign * angleDeg * Math.PI / 180;
+
+      ctx.strokeStyle = "rgba(255,255,255,0.20)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, mid); ctx.lineTo(right, mid);
+      ctx.stroke();
+
+      function wave(color, phase, label, yLabel) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i <= len; i++) {
+          const theta = (i / len) * Math.PI * 4;
+          const x = left + i;
+          const y = mid - amp * Math.sin(theta + phase);
+          if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.font = "14px Arial";
+        ctx.fillText(label, 24, yLabel);
+      }
+
+      wave("#38bdf8", 0, "A", 70);
+      wave("#22c55e", -2 * Math.PI / 3, "B", 92);
+      wave("#f59e0b", 2 * Math.PI / 3, "C", 114);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.68)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7,7]);
+      const shiftX = (phaseShift / (Math.PI * 4)) * len;
+      ctx.beginPath();
+      ctx.moveTo(left + 70, mid - amp - 14);
+      ctx.lineTo(left + 70 + shiftX, mid - amp - 14);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "14px Arial";
+      ctx.fillText("Référence visuelle : phases A/B/C séparées de 120°", 24, h - 42);
+      ctx.fillText("Déphasage courant-tension selon φ affiché dans les résultats", 24, h - 20);
+    }
+
+    function loadExample() {
+      ids("knownType").value = "P";
+      refreshLabels();
+      ids("knownUnit").value = "kW";
+      ids("knownValue").value = "1000";
+      ids("pf").value = "0.95";
+      ids("voltageMode").value = "LL";
+      ids("voltageUnit").value = "V";
+      ids("voltageValue").value = "600";
+      ids("loadSign").value = "lagging";
+      document.querySelector("input[name='connection'][value='wye']").checked = true;
+      calculate();
+    }
+
+    applySavedBackground();
+    refreshLabels();
+    calculate();
+  </script>
 </body>
 </html>

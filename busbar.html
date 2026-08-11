@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur échauffement barres aluminium - JSB Electrical Tools</title>
+  <style>
+    :root {
+      --overlay: rgba(3, 7, 18, 0.76);
+      --panel: rgba(15, 23, 42, 0.76);
+      --soft: rgba(255, 255, 255, 0.10);
+      --border: rgba(255, 255, 255, 0.18);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --blue: #38bdf8;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --violet: #a78bfa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(var(--overlay), var(--overlay)),
+        radial-gradient(circle at 18% 16%, rgba(245, 158, 11, 0.22), transparent 30%),
+        radial-gradient(circle at 82% 20%, rgba(56, 189, 248, 0.18), transparent 28%),
+        radial-gradient(circle at 48% 88%, rgba(34, 197, 94, 0.15), transparent 32%),
+        #020617;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.20;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.25;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1300' height='760' viewBox='0 0 1300 760'%3E%3Cg fill='none' stroke-linecap='round'%3E%3Crect x='250' y='260' width='760' height='58' rx='12' stroke='%23f59e0b' stroke-width='7' opacity='0.72'/%3E%3Crect x='250' y='352' width='760' height='58' rx='12' stroke='%2338bdf8' stroke-width='7' opacity='0.72'/%3E%3Crect x='250' y='444' width='760' height='58' rx='12' stroke='%2322c55e' stroke-width='7' opacity='0.72'/%3E%3Cpath d='M180 290 H250 M1010 290 H1120 M180 382 H250 M1010 382 H1120 M180 474 H250 M1010 474 H1120' stroke='%23ffffff' stroke-width='5' opacity='0.55'/%3E%3Cpath d='M595 205 c50 -70 120 -70 170 0 M610 185 c35 -42 105 -42 140 0' stroke='%23ffffff' stroke-width='4' opacity='0.42'/%3E%3Cpath d='M610 555 c55 75 125 75 180 0 M625 575 c40 45 110 45 150 0' stroke='%23ffffff' stroke-width='4' opacity='0.42'/%3E%3Ctext x='1040' y='245' font-family='Arial' font-size='30' fill='%23ffffff' opacity='0.72'%3EI²R%3C/text%3E%3Ctext x='1040' y='535' font-family='Arial' font-size='30' fill='%23ffffff' opacity='0.72'%3EConvection + radiation%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+      mix-blend-mode: screen;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 24px;
+      background: rgba(2, 6, 23, 0.84);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand { display: flex; flex-direction: column; gap: 2px; }
+    .brand strong { font-size: 20px; }
+    .brand span { color: var(--muted); font-size: 13px; }
+    .menu { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .btn, .menu label {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.10);
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover, .menu label:hover { background: rgba(255,255,255,0.18); }
+    #imageInput { display: none; }
+
+    .wrap { position: relative; z-index: 2; max-width: 1340px; margin: 0 auto; padding: 34px 22px 60px; }
+    .hero { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 22px; margin-bottom: 22px; }
+    .panel, .hero-card { background: var(--panel); border: 1px solid var(--border); border-radius: 26px; box-shadow: 0 24px 70px rgba(0,0,0,0.34); backdrop-filter: blur(18px); }
+    .hero-card { padding: 28px; }
+    h1 { margin: 0; font-size: clamp(32px, 5vw, 58px); line-height: 1.05; }
+    .subtitle { margin-top: 16px; color: var(--muted); font-size: 17px; line-height: 1.55; }
+    .formula-box { padding: 22px; display: grid; gap: 12px; }
+    .formula-box h2 { margin: 0; font-size: 20px; }
+    .formula { color: #e0f2fe; line-height: 1.55; font-size: 15px; }
+    .layout { display: grid; grid-template-columns: 440px 1fr; gap: 22px; }
+    .panel { padding: 22px; }
+    .panel h2 { margin: 0 0 16px; font-size: 22px; }
+    .panel h3 { margin: 20px 0 12px; font-size: 17px; color: #e2e8f0; }
+
+    .field-grid { display: grid; grid-template-columns: 1fr 110px; gap: 12px; align-items: end; margin-bottom: 13px; }
+    .field-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    label { display: block; color: #e2e8f0; font-size: 13px; margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 14px;
+      color: white;
+      background: rgba(15, 23, 42, 0.78);
+      outline: none;
+      font-size: 15px;
+    }
+    select option { background: #0f172a; color: white; }
+    input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(56,189,248,0.14); }
+
+    .actions, .report-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .primary { background: linear-gradient(135deg, #0284c7, #22c55e); border: 0; font-weight: bold; }
+    .secondary { background: rgba(255,255,255,0.10); }
+    .copy-status { margin-top: 10px; color: #bbf7d0; font-size: 13px; min-height: 18px; }
+
+    .results-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .result-card { padding: 16px; border-radius: 20px; background: var(--soft); border: 1px solid var(--border); min-height: 110px; }
+    .result-card .label { color: var(--muted); font-size: 13px; }
+    .result-card .value { margin-top: 8px; font-size: 24px; font-weight: bold; }
+    .result-card .note { margin-top: 6px; color: #cbd5e1; font-size: 12px; line-height: 1.4; }
+
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    canvas { width: 100%; min-height: 330px; border-radius: 22px; background: rgba(2, 6, 23, 0.58); border: 1px solid var(--border); }
+    .table { width: 100%; border-collapse: collapse; margin-top: 16px; overflow: hidden; border-radius: 16px; font-size: 14px; }
+    .table th, .table td { border-bottom: 1px solid rgba(255,255,255,0.12); padding: 11px 10px; text-align: left; }
+    .table th { color: #bae6fd; background: rgba(56,189,248,0.12); }
+    .table td { color: #e2e8f0; }
+
+    .warning { margin-top: 16px; padding: 14px; border-radius: 16px; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.30); color: #fde68a; font-size: 13px; line-height: 1.45; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .pill { padding: 7px 10px; border-radius: 999px; background: rgba(56,189,248,0.14); border: 1px solid rgba(56,189,248,0.28); color: #bae6fd; font-size: 12px; }
+
+
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      margin-left: 6px;
+      border-radius: 50%;
+      border: 1px solid rgba(186, 230, 253, 0.85);
+      color: #bae6fd;
+      background: rgba(56, 189, 248, 0.16);
+      font-size: 11px;
+      font-weight: bold;
+      cursor: help;
+      position: relative;
+      vertical-align: middle;
+      line-height: 1;
+    }
+
+    .info-icon .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+      position: absolute;
+      z-index: 9999;
+      left: 22px;
+      top: -12px;
+      width: min(340px, 78vw);
+      padding: 13px 14px;
+      border-radius: 14px;
+      background: rgba(2, 6, 23, 0.98);
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+      font-size: 12.5px;
+      font-weight: normal;
+      line-height: 1.45;
+      white-space: normal;
+      text-align: left;
+    }
+
+    .info-icon:hover .tooltip,
+    .info-icon:focus .tooltip,
+    .info-icon:active .tooltip {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .tooltip-title {
+      display: block;
+      color: #7dd3fc;
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .tooltip-formula {
+      display: block;
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(148, 163, 184, 0.28);
+      color: #fde68a;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+    }
+
+    @media (max-width: 650px) {
+      .info-icon .tooltip {
+        left: auto;
+        right: -8px;
+        top: 22px;
+        width: min(320px, 84vw);
+      }
+    }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      body::before, body::after, .topbar, .menu, .actions, .report-actions, .copy-status { display: none !important; }
+      .wrap { max-width: none !important; padding: 0 !important; }
+      .panel, .hero-card { background: white !important; color: black !important; border: 1px solid #999 !important; box-shadow: none !important; backdrop-filter: none !important; page-break-inside: avoid; }
+      .result-card, .table th, .table td { color: black !important; border-color: #bbb !important; }
+      canvas { border: 1px solid #999 !important; }
+    }
+
+    @media (max-width: 1080px) {
+      .hero, .layout, .chart-grid { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 650px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .menu { width: 100%; }
+      .btn, .menu label { flex: 1; }
+      .field-grid, .field-grid.three { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: 1fr; }
+      .actions, .report-actions { grid-template-columns: 1fr; }
+      canvas { min-height: 280px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>JSB Electrical Tools</strong>
+      <span>Échauffement de barres aluminium</span>
+    </div>
+    <div class="menu">
+      <a class="btn" href="index.html">⬅ Retour au portail</a>
+      <label for="imageInput">Changer le fond</label>
+      <input id="imageInput" type="file" accept="image/*">
+      <button class="btn" type="button" onclick="resetBackground()">Fond barres</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-card">
+        <h1>Calculateur d'échauffement des barres aluminium</h1>
+        <p class="subtitle">
+          Modèle stationnaire pour barres rectangulaires en aluminium, simples ou multiples en parallèle.
+          Le calcul tient compte des pertes Joule I²R, de l'augmentation de résistance avec la température,
+          de la convection, du rayonnement, de la température ambiante et de l'allongement thermique.
+        </p>
+        <div class="pill-row">
+          <span class="pill">Barre unique</span>
+          <span class="pill">Barres en parallèle</span>
+          <span class="pill">Aluminium</span>
+          <span class="pill">Convection + radiation</span>
+          <span class="pill">R(T)</span>
+          <span class="pill">Expansion thermique</span>
+        </div>
+      </div>
+      <div class="panel formula-box">
+        <h2>Modèle thermique simplifié</h2>
+        <div class="formula">
+          R'(T) = ρ<sub>20</sub> / A × [1 + α<sub>R</sub>(T - 20 °C)]<br>
+          P'<sub>Joule</sub> = I<sub>barre</sub><sup>2</sup> × R'(T)<br>
+          P'<sub>diss</sub> = A'<sub>surf</sub> × [h(T - T<sub>amb</sub>) + εσ(T<sub>K</sub><sup>4</sup> - T<sub>amb,K</sub><sup>4</sup>)]<br>
+          Équilibre : P'<sub>Joule</sub> = P'<sub>diss</sub><br>
+          Expansion : ΔL = α<sub>L</sub> × L × (T - T<sub>installation</sub>)
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Entrées</h2>
+
+        <h3>1. Courant et configuration</h3>
+        <div class="field-grid three">
+          <div>
+            <label for="currentTotal">Courant total</label>
+            <input id="currentTotal" type="number" step="any" value="70000" oninput="calculate()">
+          </div>
+          <div>
+            <label for="currentUnit">Unité</label>
+            <select id="currentUnit" oninput="calculate()">
+              <option value="A">A</option>
+              <option value="kA">kA</option>
+            </select>
+          </div>
+          <div>
+            <label for="barCount">Nb barres parallèles</label>
+            <input id="barCount" type="number" step="1" min="1" value="3" oninput="calculate()">
+          </div>
+        </div>
+
+        <div class="field-grid three">
+          <div>
+            <label for="sharingFactor">Facteur barre critique</label>
+            <input id="sharingFactor" type="number" step="0.01" value="1.00" oninput="calculate()">
+          </div>
+          <div>
+            <label for="length">Longueur</label>
+            <input id="length" type="number" step="any" value="12" oninput="calculate()">
+          </div>
+          <div>
+            <label for="installTemp">Temp. installation °C</label>
+            <input id="installTemp" type="number" step="any" value="20" oninput="calculate()">
+          </div>
+        </div>
+
+        <h3>2. Géométrie d'une barre</h3>
+        <div class="field-grid three">
+          <div>
+            <label for="width">Largeur</label>
+            <input id="width" type="number" step="any" value="250" oninput="calculate()">
+          </div>
+          <div>
+            <label for="thickness">Épaisseur</label>
+            <input id="thickness" type="number" step="any" value="25" oninput="calculate()">
+          </div>
+          <div>
+            <label for="dimensionUnit">Unité</label>
+            <select id="dimensionUnit" oninput="calculate()">
+              <option value="mm">mm</option>
+              <option value="m">m</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-grid three">
+          <div>
+            <label for="surfaceFactor">Facteur surface exposée</label>
+            <input id="surfaceFactor" type="number" step="0.01" value="0.85" oninput="calculate()">
+          </div>
+          <div>
+            <label for="internalFaceFactor">Facteur faces internes</label>
+            <input id="internalFaceFactor" type="number" step="0.01" value="0.25" oninput="calculate()">
+          </div>
+          <div>
+            <label for="spacing">Espacement entre barres</label>
+            <input id="spacing" type="number" step="any" value="25" oninput="calculate()">
+          </div>
+          <div>
+            <label for="limitTemp">Temp. limite °C</label>
+            <input id="limitTemp" type="number" step="any" value="90" oninput="calculate()">
+          </div>
+        </div>
+
+        <h3>3. Conditions thermiques</h3>
+        <div class="field-grid three">
+          <div>
+            <label for="ambient">Temp. ambiante °C</label>
+            <input id="ambient" type="number" step="any" value="40" oninput="calculate()">
+          </div>
+          <div>
+            <label for="hCoeff">Convection h</label>
+            <input id="hCoeff" type="number" step="any" value="8" oninput="calculate()">
+          </div>
+          <div>
+            <label for="emissivity">Émissivité ε</label>
+            <input id="emissivity" type="number" step="0.01" min="0" max="1" value="0.30" oninput="calculate()">
+          </div>
+        </div>
+
+        <h3>4. Aluminium</h3>
+        <div class="field-grid three">
+          <div>
+            <label for="rho20">ρ20 Ω·m</label>
+            <input id="rho20" type="number" step="any" value="2.82e-8" oninput="calculate()">
+          </div>
+          <div>
+            <label for="alphaR">α résistance 1/°C</label>
+            <input id="alphaR" type="number" step="any" value="0.004" oninput="calculate()">
+          </div>
+          <div>
+            <label for="alphaL">α expansion 1/°C</label>
+            <input id="alphaL" type="number" step="any" value="23.1e-6" oninput="calculate()">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" type="button" onclick="calculate()">Calculer</button>
+          <button class="btn secondary" type="button" onclick="loadExample()">Exemple 70 kA</button>
+        </div>
+
+        <div class="warning">
+          Modèle d'approximation en régime permanent pour barres rectangulaires nues en air. Le calcul ne remplace pas
+          une étude détaillée selon les normes applicables, essais, éléments finis, effets AC, effet de proximité, ventilation réelle,
+          contacts, joints, supports, confinement ou conditions transitoires.
+        </div>
+      </aside>
+
+      <section class="panel">
+        <h2>Résultats calculés</h2>
+        <div class="results-grid">
+          <div class="result-card"><div class="label">Courant par barre moyen</div><div class="value" id="outIavg">-</div><div class="note" id="outIavg2">-</div></div>
+          <div class="result-card"><div class="label">Courant barre critique</div><div class="value" id="outIcrit">-</div><div class="note" id="outIcrit2">-</div></div>
+          <div class="result-card"><div class="label">Section par barre</div><div class="value" id="outArea">-</div><div class="note" id="outArea2">-</div></div>
+          <div class="result-card"><div class="label">Densité de courant</div><div class="value" id="outJ">-</div><div class="note" id="outJ2">Barre critique</div></div>
+          <div class="result-card"><div class="label">Température finale</div><div class="value" id="outTemp">-</div><div class="note" id="outTemp2">-</div></div>
+          <div class="result-card"><div class="label">Élévation ΔT</div><div class="value" id="outRise">-</div><div class="note" id="outRise2">vs ambiante</div></div>
+          <div class="result-card"><div class="label">Pertes Joule</div><div class="value" id="outLossM">-</div><div class="note" id="outLossM2">Par mètre et total</div></div>
+          <div class="result-card"><div class="label">Résistance linéique</div><div class="value" id="outRline">-</div><div class="note" id="outRline2">À température finale</div></div>
+          <div class="result-card"><div class="label">Surface dissipante</div><div class="value" id="outSurf">-</div><div class="note" id="outSurf2">Par barre critique</div></div>
+          <div class="result-card"><div class="label">Expansion thermique</div><div class="value" id="outExp">-</div><div class="note" id="outExp2">Depuis T installation</div></div>
+          <div class="result-card"><div class="label">Marge thermique</div><div class="value" id="outMargin">-</div><div class="note" id="outMargin2">vs limite entrée</div></div>
+          <div class="result-card"><div class="label">Courant admissible estimé</div><div class="value" id="outIlim">-</div><div class="note" id="outIlim2">À la température limite</div></div>
+        </div>
+
+        <div class="chart-grid">
+          <canvas id="thermalCanvas" width="640" height="420"></canvas>
+          <canvas id="sectionCanvas" width="640" height="420"></canvas>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr><th>Grandeur</th><th>Valeur</th><th>Commentaire</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>R20 par mètre</td><td id="tblR20">-</td><td>Résistance à 20 °C d'une barre</td></tr>
+            <tr><td>R(T) par mètre</td><td id="tblRT">-</td><td>Résistance corrigée à la température finale</td></tr>
+            <tr><td>Périmètre géométrique</td><td id="tblPerim">-</td><td>2 × (largeur + épaisseur)</td></tr>
+            <tr><td>Périmètre exposé utilisé</td><td id="tblPerimExp">-</td><td>Périmètre × facteur surface exposée</td></tr>
+            <tr><td>Convection à T final</td><td id="tblConv">-</td><td>W/m dissipés par convection</td></tr>
+            <tr><td>Radiation à T final</td><td id="tblRad">-</td><td>W/m dissipés par rayonnement</td></tr>
+            <tr><td>Bilan thermique</td><td id="tblBalance">-</td><td>P Joule comparé à P dissipée</td></tr>
+            <tr><td>Ratio espacement/épaisseur</td><td id="tblSpacing">-</td><td>Indication qualitative de ventilation entre barres</td></tr>
+          </tbody>
+        </table>
+
+        <div class="report-actions">
+          <button class="btn primary" type="button" onclick="downloadPDFReport()">Télécharger le rapport PDF</button>
+          <button class="btn secondary" type="button" onclick="copyReportToClipboard()">Copier les données</button>
+        </div>
+        <div class="copy-status" id="copyStatus"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const SIGMA = 5.670374419e-8;
+    const $ = id => document.getElementById(id);
+    const imageInput = $("imageInput");
+
+    function applySavedBackground() {
+      const saved = localStorage.getItem("jsb-background-image");
+      if (saved) document.body.style.backgroundImage = "linear-gradient(var(--overlay), var(--overlay)), url('" + saved + "')";
+    }
+
+    imageInput.addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        localStorage.setItem("jsb-background-image", e.target.result);
+        document.body.style.backgroundImage = "linear-gradient(var(--overlay), var(--overlay)), url('" + e.target.result + "')";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function resetBackground() { localStorage.removeItem("jsb-background-image"); document.body.style.backgroundImage = ""; }
+    function val(id) { return parseFloat($(id).value); }
+    function fmtA(a) { return Math.abs(a) >= 1000 ? (a/1000).toFixed(3) + " kA" : a.toFixed(2) + " A"; }
+    function fmtW(w) { return Math.abs(w) >= 1000 ? (w/1000).toFixed(3) + " kW" : w.toFixed(2) + " W"; }
+    function fmtR(r) { return r < 1e-6 ? (r*1e9).toFixed(3) + " nΩ/m" : r < 1e-3 ? (r*1e6).toFixed(3) + " µΩ/m" : r.toFixed(6) + " Ω/m"; }
+    function fmtM(x) { return x.toFixed(4) + " m"; }
+    function fmtTemp(t) { return t.toFixed(2) + " °C"; }
+
+    function currentA() { return $("currentUnit").value === "kA" ? val("currentTotal") * 1000 : val("currentTotal"); }
+    function dimM(x) { return $("dimensionUnit").value === "mm" ? x / 1000 : x; }
+
+    function heatDiss(T, Tamb, exposedPerim, h, eps) {
+      const Tk = T + 273.15;
+      const Tak = Tamb + 273.15;
+      const conv = exposedPerim * h * (T - Tamb);
+      const rad = exposedPerim * eps * SIGMA * (Math.pow(Tk,4) - Math.pow(Tak,4));
+      return { total: conv + rad, conv, rad };
+    }
+
+    function joule(T, I, R20, alphaR) {
+      return I * I * R20 * (1 + alphaR * (T - 20));
+    }
+
+    function solveTemp(I, R20, alphaR, Tamb, exposedPerim, h, eps) {
+      let lo = Tamb;
+      let hi = 1000;
+      function f(T) { return heatDiss(T, Tamb, exposedPerim, h, eps).total - joule(T, I, R20, alphaR); }
+      if (f(hi) < 0) return { ok:false, T:hi };
+      for (let i=0; i<90; i++) {
+        const mid = (lo + hi) / 2;
+        if (f(mid) >= 0) hi = mid; else lo = mid;
+      }
+      return { ok:true, T:(lo+hi)/2 };
+    }
+
+    function calcAtLimit(Tlim, R20, alphaR, Tamb, exposedPerim, h, eps) {
+      const diss = heatDiss(Tlim, Tamb, exposedPerim, h, eps).total;
+      const rT = R20 * (1 + alphaR * (Tlim - 20));
+      return Math.sqrt(Math.max(diss / rT, 0));
+    }
+
+    function calculate() {
+      const ITotal = currentA();
+      const n = Math.max(1, Math.round(val("barCount")));
+      const sharing = Math.max(0.01, val("sharingFactor"));
+      const L = val("length");
+      const Tinstall = val("installTemp");
+      const w = dimM(val("width"));       // axe X : largeur d'une barre
+      const t = dimM(val("thickness"));   // axe Y : hauteur d'une barre
+      const spacing = dimM(val("spacing")); // axe X : distance libre entre barres
+      const surfaceFactor = Math.max(0.01, Math.min(1.5, val("surfaceFactor")));
+      const internalFaceFactor = Math.max(0, Math.min(1, val("internalFaceFactor")));
+      const Tlim = val("limitTemp");
+      const Tamb = val("ambient");
+      const h = val("hCoeff");
+      const eps = Math.max(0, Math.min(1, val("emissivity")));
+      const rho20 = val("rho20");
+      const alphaR = val("alphaR");
+      const alphaL = val("alphaL");
+
+      if (![ITotal,n,L,Tinstall,w,t,spacing,surfaceFactor,internalFaceFactor,Tlim,Tamb,h,eps,rho20,alphaR,alphaL].every(Number.isFinite) || ITotal<=0 || n<=0 || w<=0 || t<=0 || L<=0 || h<0) return;
+
+      const area = w * t;
+      const perim = 2 * (w + t);
+      const R20 = rho20 / area;
+      const Iavg = ITotal / n;
+      const Icrit = Iavg * sharing;
+      const J = Icrit / (area * 1e6);
+
+      const bars = [];
+      for (let i = 0; i < n; i++) {
+        let externalSides;
+        if (n === 1) externalSides = 2;
+        else externalSides = (i === 0 ? 1 : 0) + (i === n - 1 ? 1 : 0);
+        const internalSides = 2 - externalSides;
+
+        // Géométrie convenue : largeur sur X, hauteur sur Y, longueur sur Z.
+        // Les barres multiples sont côte à côte selon X.
+        // Les faces haut/bas sont toujours considérées exposées. Les faces internes reçoivent une correction.
+        const exposedPerim = surfaceFactor * (2 * w + externalSides * t + internalFaceFactor * internalSides * t);
+        const sol = solveTemp(Icrit, R20, alphaR, Tamb, exposedPerim, h, eps);
+        const T = sol.T;
+        const RT = R20 * (1 + alphaR * (T - 20));
+        const pj = joule(T, Icrit, R20, alphaR);
+        const diss = heatDiss(T, Tamb, exposedPerim, h, eps);
+        const expansion = alphaL * L * (T - Tinstall);
+        const IcritLimit = calcAtLimit(Tlim, R20, alphaR, Tamb, exposedPerim, h, eps);
+        bars.push({
+          index: i + 1,
+          position: n === 1 ? "unique" : (externalSides === 1 ? "externe" : "interne"),
+          externalSides,
+          internalSides,
+          exposedPerim,
+          ok: sol.ok,
+          T,
+          RT,
+          pj,
+          diss,
+          expansion,
+          IcritLimit
+        });
+      }
+
+      const hottest = bars.reduce((a,b) => b.T > a.T ? b : a, bars[0]);
+      const coolest = bars.reduce((a,b) => b.T < a.T ? b : a, bars[0]);
+      const avgTemp = bars.reduce((s,b)=>s+b.T,0)/bars.length;
+      const T = hottest.T;
+      const rise = T - Tamb;
+      const RT = hottest.RT;
+      const pj = hottest.pj;
+      const diss = hottest.diss;
+      const pTotal = bars.reduce((s,b)=>s + b.pj * L, 0);
+      const expansion = hottest.expansion;
+      const margin = Tlim - T;
+      const ItotalLimit = Math.min(...bars.map(b => b.IcritLimit)) / sharing * n;
+      const spacingRatio = spacing / t;
+      const tempSummary = bars.map(b => "B" + b.index + " " + b.position + " = " + b.T.toFixed(1) + " °C").join(" | ");
+      const perimSummary = bars.map(b => "B" + b.index + " = " + b.exposedPerim.toFixed(4) + " m²/m").join(" | ");
+
+      $("outIavg").textContent = fmtA(Iavg);
+      $("outIavg2").textContent = n + " barre(s) en parallèle selon l'axe X";
+      $("outIcrit").textContent = fmtA(Icrit);
+      $("outIcrit2").textContent = "Facteur critique = " + sharing.toFixed(2);
+      $("outArea").textContent = (area * 1e6).toFixed(1) + " mm²";
+      $("outArea2").textContent = "Largeur X × hauteur Y";
+      $("outJ").textContent = J.toFixed(3) + " A/mm²";
+      $("outJ2").textContent = "I critique / section";
+      $("outTemp").textContent = hottest.ok ? fmtTemp(T) : "> 1000 °C";
+      $("outTemp2").textContent = "Barre " + hottest.index + " " + hottest.position + ", moyenne = " + avgTemp.toFixed(1) + " °C";
+      $("outRise").textContent = fmtTemp(rise).replace(" °C", " °C");
+      $("outRise2").textContent = "vs Tamb = " + fmtTemp(Tamb) + ", barre la plus chaude";
+      $("outLossM").textContent = fmtW(pj) + "/m";
+      $("outLossM2").textContent = "Total groupe approx. " + fmtW(pTotal);
+      $("outRline").textContent = fmtR(RT);
+      $("outRline2").textContent = "Barre la plus chaude, R20 = " + fmtR(R20);
+      $("outSurf").textContent = hottest.exposedPerim.toFixed(4) + " m²/m";
+      $("outSurf2").textContent = "Barre " + hottest.index + " " + hottest.position;
+      $("outExp").textContent = (expansion * 1000).toFixed(2) + " mm";
+      $("outExp2").textContent = "Barre la plus chaude, L = " + L.toFixed(2) + " m";
+      $("outMargin").textContent = margin.toFixed(2) + " °C";
+      $("outMargin2").textContent = margin >= 0 ? "Sous la limite" : "Dépassement de limite";
+      $("outIlim").textContent = fmtA(ItotalLimit);
+      $("outIlim2").textContent = "Limité par la barre la plus chaude";
+
+      $("tblR20").textContent = fmtR(R20);
+      $("tblRT").textContent = fmtR(RT);
+      $("tblPerim").textContent = perim.toFixed(4) + " m²/m";
+      $("tblPerimExp").textContent = perimSummary;
+      $("tblConv").textContent = fmtW(diss.conv) + "/m, barre la plus chaude";
+      $("tblRad").textContent = fmtW(diss.rad) + "/m, barre la plus chaude";
+      $("tblBalance").textContent = "Pj = " + fmtW(pj) + "/m, Pdiss = " + fmtW(diss.total) + "/m";
+      $("tblSpacing").textContent = spacingRatio.toFixed(2) + " × hauteur Y | " + tempSummary;
+
+      drawThermalChart(Icrit, R20, alphaR, Tamb, hottest.exposedPerim, h, eps, T, Tlim);
+      drawSection(w, t, n, spacing, bars, surfaceFactor, internalFaceFactor);
+    }
+
+    function drawThermalChart(I, R20, alphaR, Tamb, exposedPerim, h, eps, Teq, Tlim) {
+      const c = $("thermalCanvas"), ctx = c.getContext("2d"), W = c.width, H = c.height;
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = "rgba(2,6,23,0.18)"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 18px Arial"; ctx.fillText("Bilan thermique par mètre", 24, 30);
+      const Tmin = Tamb;
+      const Tmax = Math.max(Tlim + 50, Teq + 80, Tamb + 80);
+      let maxP = 1;
+      const ptsJ = [], ptsD = [];
+      for (let i=0; i<=80; i++) {
+        const T = Tmin + (Tmax - Tmin) * i / 80;
+        const pj = joule(T, I, R20, alphaR);
+        const pd = heatDiss(T, Tamb, exposedPerim, h, eps).total;
+        ptsJ.push([T,pj]); ptsD.push([T,pd]); maxP = Math.max(maxP, pj, pd);
+      }
+      const left=58, right=W-28, top=58, bottom=H-54;
+      function x(T){ return left + (T-Tmin)/(Tmax-Tmin)*(right-left); }
+      function y(P){ return bottom - P/maxP*(bottom-top); }
+      ctx.strokeStyle="rgba(255,255,255,0.22)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(left,bottom); ctx.lineTo(right,bottom); ctx.moveTo(left,bottom); ctx.lineTo(left,top); ctx.stroke();
+      function curve(pts, color){ ctx.strokeStyle=color; ctx.lineWidth=3; ctx.beginPath(); pts.forEach((p,i)=>{ const xx=x(p[0]), yy=y(p[1]); if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); }); ctx.stroke(); }
+      curve(ptsJ, "#f59e0b"); curve(ptsD, "#22c55e");
+      const xe=x(Teq); ctx.strokeStyle="#38bdf8"; ctx.setLineDash([7,7]); ctx.beginPath(); ctx.moveTo(xe,top); ctx.lineTo(xe,bottom); ctx.stroke(); ctx.setLineDash([]);
+      const xl=x(Tlim); ctx.strokeStyle="#ef4444"; ctx.setLineDash([5,6]); ctx.beginPath(); ctx.moveTo(xl,top); ctx.lineTo(xl,bottom); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle="#fbbf24"; ctx.font="14px Arial"; ctx.fillText("P Joule", 90, 72);
+      ctx.fillStyle="#bbf7d0"; ctx.fillText("P dissipée", 180, 72);
+      ctx.fillStyle="#bae6fd"; ctx.fillText("T eq = " + Teq.toFixed(1) + " °C", Math.min(xe+8, right-120), top+25);
+      ctx.fillStyle="#fecaca"; ctx.fillText("Limite", Math.min(xl+8, right-55), bottom-12);
+      ctx.fillStyle="#cbd5e1"; ctx.fillText("Température °C", W/2-45, H-18);
+      ctx.save(); ctx.translate(18,H/2+65); ctx.rotate(-Math.PI/2); ctx.fillText("W/m",0,0); ctx.restore();
+    }
+
+    function drawSection(w, t, n, spacing, bars, surfaceFactor, internalFaceFactor) {
+      const c = $("sectionCanvas"), ctx = c.getContext("2d"), W = c.width, H = c.height;
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = "rgba(2,6,23,0.18)"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 18px Arial"; ctx.fillText("Section X-Y : barres côte à côte selon X", 24, 30);
+
+      const totalW = w*n + spacing*(n-1);
+      const scale = Math.min((W-130)/totalW, (H-170)/t);
+      const barW = Math.max(10, w*scale);
+      const barH = Math.max(30, t*scale);
+      const gap = spacing*scale;
+      const startX = (W - (barW*n + gap*(n-1))) / 2;
+      const startY = 125;
+      const temps = bars.map(b=>b.T);
+      const minT = Math.min(...temps);
+      const maxT = Math.max(...temps);
+
+      function colorFor(T) {
+        const r = maxT === minT ? 0.45 : (T - minT) / (maxT - minT);
+        const red = Math.round(245 + r*10);
+        const green = Math.round(220 - r*120);
+        const blue = Math.round(80 - r*70);
+        return "rgb(" + red + "," + green + "," + blue + ")";
+      }
+
+      bars.forEach((b,i) => {
+        const x = startX + i*(barW + gap);
+        const y = startY;
+        ctx.fillStyle = colorFor(b.T);
+        ctx.fillRect(x,y,barW,barH);
+        ctx.strokeStyle = b.position === "interne" ? "#f97316" : "#bae6fd";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x,y,barW,barH);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 13px Arial";
+        ctx.fillText("B" + b.index, x + 6, y + 18);
+        ctx.font = "12px Arial";
+        ctx.fillText(b.T.toFixed(1) + " °C", x + 6, y + barH - 10);
+      });
+
+      // Axes
+      ctx.strokeStyle = "rgba(255,255,255,0.65)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(startX, startY + barH + 40);
+      ctx.lineTo(startX + barW*n + gap*(n-1), startY + barH + 40);
+      ctx.stroke();
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "13px Arial";
+      ctx.fillText("Axe X : largeur et empilement côte à côte", startX, startY + barH + 62);
+      ctx.save();
+      ctx.translate(startX - 38, startY + barH);
+      ctx.rotate(-Math.PI/2);
+      ctx.fillText("Axe Y : hauteur", 0, 0);
+      ctx.restore();
+      ctx.fillText("Axe Z : longueur et courant, perpendiculaire à l'écran", 24, H - 28);
+
+      ctx.fillStyle = "#e2e8f0";
+      ctx.font = "13px Arial";
+      ctx.fillText("Largeur X = " + (w*1000).toFixed(1) + " mm", 24, 64);
+      ctx.fillText("Hauteur Y = " + (t*1000).toFixed(1) + " mm", 24, 84);
+      ctx.fillText("Facteur surface = " + surfaceFactor.toFixed(2) + ", faces internes = " + internalFaceFactor.toFixed(2), 24, 104);
+      ctx.fillText("Barres externes : faces extérieures libres | barres internes : faces latérales réduites", 24, H - 50);
+    }
+
+    function loadExample() {
+      $("currentUnit").value = "kA"; $("currentTotal").value = "70"; $("barCount").value = "3"; $("sharingFactor").value = "1.00";
+      $("length").value = "12"; $("installTemp").value = "20"; $("dimensionUnit").value = "mm"; $("width").value = "250"; $("thickness").value = "25";
+      $("surfaceFactor").value = "0.85"; $("internalFaceFactor").value = "0.25"; $("spacing").value = "25"; $("limitTemp").value = "90"; $("ambient").value = "40"; $("hCoeff").value = "8"; $("emissivity").value = "0.30";
+      $("rho20").value = "2.82e-8"; $("alphaR").value = "0.004"; $("alphaL").value = "23.1e-6";
+      calculate();
+    }
+
+
+    const tooltipContent = {
+      currentTotal: {
+        title: "Courant total",
+        text: "Courant total circulant dans l'ensemble des barres en parallèle. Si tu as 70 kA répartis sur 3 barres, le courant moyen de départ est 70 kA / 3 = 23,3 kA par barre.",
+        formula: "I_barre_moyen = I_total / N"
+      },
+      currentUnit: {
+        title: "Unité du courant",
+        text: "Choisis si le courant total est entré en ampères ou en kiloampères. Le calcul convertit toujours la valeur en ampères à l'interne.",
+        formula: "1 kA = 1000 A"
+      },
+      barCount: {
+        title: "Nombre de barres parallèles",
+        text: "Nombre de barres qui partagent le courant. Le modèle suppose un partage égal, puis applique le facteur barre critique pour représenter un déséquilibre possible.",
+        formula: "I_moyen = I_total / nombre de barres"
+      },
+      sharingFactor: {
+        title: "Facteur barre critique",
+        text: "Facteur conservateur appliqué au courant moyen d'une barre. Utilise 1,00 pour un partage parfait. Utilise 1,10 si tu veux modéliser une barre qui transporte 10 % de courant de plus que la moyenne.",
+        formula: "I_critique = I_moyen × facteur"
+      },
+      length: {
+        title: "Longueur de barre",
+        text: "Longueur totale considérée pour estimer les pertes totales et l'expansion thermique. La température finale est calculée par mètre, mais les pertes totales utilisent cette longueur.",
+        formula: "P_total = P' × L × N"
+      },
+      installTemp: {
+        title: "Température d'installation",
+        text: "Température de référence au moment où la barre est installée ou contrainte mécaniquement. Elle sert à calculer l'allongement thermique entre l'installation et la température finale.",
+        formula: "ΔL = αL × L × (T_final - T_installation)"
+      },
+      width: {
+        title: "Largeur d'une barre",
+        text: "Largeur physique d'une seule barre. Avec l'épaisseur, elle détermine la section conductrice. Une section plus grande réduit la résistance et les pertes Joule.",
+        formula: "A = largeur × épaisseur"
+      },
+      thickness: {
+        title: "Épaisseur d'une barre",
+        text: "Épaisseur physique d'une seule barre. Elle influence la section électrique, le périmètre exposé, l'espacement relatif et la densité de courant.",
+        formula: "J = I_critique / A"
+      },
+      dimensionUnit: {
+        title: "Unité des dimensions",
+        text: "Choisis si la largeur, l'épaisseur et l'espacement sont entrés en millimètres ou en mètres. Le calcul convertit tout en mètres à l'interne.",
+        formula: "1 mm = 0,001 m"
+      },
+      surfaceFactor: {
+        title: "Facteur surface exposée",
+        text: "Facteur qui réduit ou ajuste la surface réellement disponible pour dissiper la chaleur. 1,00 signifie que le périmètre complet est considéré exposé. 0,85 modélise des surfaces partiellement masquées par les supports, les barres voisines ou la géométrie réelle.",
+        formula: "A'_exposée = périmètre × facteur"
+      },
+      internalFaceFactor: {
+        title: "Facteur faces internes",
+        text: "Facteur appliqué aux faces verticales qui font face à une autre barre. 1,00 signifie qu'une face interne refroidit comme une face externe. 0,25 signifie qu'une face interne ne dissipe qu'environ 25 % d'une face libre, ce qui rend les barres internes plus chaudes.",
+        formula: "Périmètre efficace = 2W + côtés externes×H + côtés internes×H×facteur"
+      },
+      spacing: {
+        title: "Espacement entre barres",
+        text: "Distance libre entre les barres parallèles. Le modèle l'affiche comme indicateur qualitatif de ventilation. Un faible espacement peut réduire la convection réelle entre les barres.",
+        formula: "ratio = espacement / épaisseur"
+      },
+      limitTemp: {
+        title: "Température limite",
+        text: "Température maximale acceptable pour comparer le résultat. Elle sert aussi à estimer le courant admissible total qui amènerait la barre à cette température limite.",
+        formula: "I_limite calculé à T = T_limite"
+      },
+      ambient: {
+        title: "Température ambiante",
+        text: "Température de l'air autour des barres. Plus l'ambiante est élevée, moins il reste de marge thermique avant d'atteindre la température limite.",
+        formula: "ΔT = T_final - T_ambiante"
+      },
+      hCoeff: {
+        title: "Coefficient de convection h",
+        text: "Coefficient global de convection en W/m²·K. Valeurs indicatives : 5 à 8 pour air calme, 10 à 15 pour ventilation légère, 20 à 40 pour ventilation forcée. À ajuster selon l'installation réelle.",
+        formula: "P_conv = A' × h × (T - Tamb)"
+      },
+      emissivity: {
+        title: "Émissivité ε",
+        text: "Capacité de la surface à rayonner la chaleur. Aluminium neuf brillant : faible. Aluminium oxydé : moyen. Surface noire ou peinte : élevé. Plus ε est élevé, plus le rayonnement thermique augmente.",
+        formula: "P_rad = A' × ε × σ × (T⁴ - Tamb⁴)"
+      },
+      rho20: {
+        title: "Résistivité ρ20",
+        text: "Résistivité électrique de l'aluminium à 20 °C. La valeur par défaut correspond à une valeur pratique pour aluminium conducteur. Augmenter cette valeur si l'alliage est moins conducteur.",
+        formula: "R20' = ρ20 / A"
+      },
+      alphaR: {
+        title: "Coefficient thermique de résistance αR",
+        text: "Coefficient qui décrit l'augmentation de la résistance électrique avec la température. Pour l'aluminium, une valeur typique pratique est autour de 0,004 /°C.",
+        formula: "R(T) = R20 × [1 + αR × (T - 20)]"
+      },
+      alphaL: {
+        title: "Coefficient de dilatation αL",
+        text: "Coefficient utilisé pour calculer l'allongement mécanique de la barre avec la température. Pour l'aluminium, une valeur courante est 23,1 × 10⁻⁶ /°C.",
+        formula: "ΔL = αL × L × ΔT"
+      }
+    };
+
+    function addTooltips() {
+      Object.keys(tooltipContent).forEach(function(id) {
+        const label = document.querySelector("label[for='" + id + "']");
+        if (!label || label.querySelector(".info-icon")) return;
+        const data = tooltipContent[id];
+        const icon = document.createElement("span");
+        icon.className = "info-icon";
+        icon.tabIndex = 0;
+        icon.setAttribute("aria-label", data.title + " - information");
+        icon.innerHTML = "i<span class='tooltip'><span class='tooltip-title'>" + data.title + "</span>" + data.text + "<span class='tooltip-formula'>" + data.formula + "</span></span>";
+        label.appendChild(icon);
+      });
+    }
+
+    function getCleanText(selector) { const e = document.querySelector(selector); return e ? e.innerText.replace(/\n{3,}/g,"\n\n").trim() : ""; }
+    function getInputSummary() {
+      const rows=[];
+      document.querySelectorAll("input, select").forEach(function(el){
+        if(!el.id || el.type === "file") return;
+        const label=document.querySelector("label[for='"+el.id+"']");
+        const name=label ? label.innerText.trim() : el.id;
+        const value=el.tagName.toLowerCase()==="select" && el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value;
+        rows.push(name + " : " + value);
+      });
+      return rows.join("\n");
+    }
+    function buildReportText() {
+      const title=document.querySelector("h1") ? document.querySelector("h1").innerText.trim() : "Rapport de calcul";
+      const now=new Date().toLocaleString("fr-CA");
+      const results=Array.from(document.querySelectorAll(".result-card")).map(card=>card.innerText.replace(/\n+/g," | ").trim()).join("\n");
+      return ["JSB Electrical Tools", title, "Date du rapport : " + now, "", "=== DONNÉES D'ENTRÉE ===", getInputSummary(), "", "=== RÉSULTATS ===", results, "", "=== DÉTAILS TECHNIQUES ===", getCleanText(".table"), "", "=== NOTE ===", getCleanText(".warning"), "", "Rapport généré automatiquement à partir des valeurs affichées à l'écran."].join("\n");
+    }
+    async function copyReportToClipboard() {
+      const report=buildReportText(); const status=$("copyStatus");
+      try { await navigator.clipboard.writeText(report); if(status) status.innerText="Rapport copié dans le presse-papier."; }
+      catch(e){ const ta=document.createElement("textarea"); ta.value=report; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); if(status) status.innerText="Rapport copié dans le presse-papier."; }
+    }
+    function downloadPDFReport() {
+      const report=buildReportText(); const title=document.querySelector("h1") ? document.querySelector("h1").innerText.trim() : "Rapport";
+      const win=window.open("","_blank");
+      const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${title}</title><style>body{font-family:Arial,Helvetica,sans-serif;margin:28px;color:#111827}h1{margin-bottom:4px}.subtitle{color:#475569;margin-bottom:24px}pre{white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:1.45}.box{border:1px solid #cbd5e1;border-radius:12px;padding:18px}@page{margin:18mm}</style></head><body><h1>${title}</h1><div class="subtitle">JSB Electrical Tools - rapport généré localement</div><div class="box"><pre>${report.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+      win.document.open(); win.document.write(html); win.document.close();
+    }
+
+    addTooltips();
+    applySavedBackground();
+    calculate();
+  </script>
+</body>
+</html>

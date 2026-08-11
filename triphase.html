@@ -306,6 +306,63 @@
       .actions { grid-template-columns: 1fr; }
       canvas { min-height: 280px; }
     }
+
+    .report-actions {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .report-actions button {
+      min-height: 46px;
+    }
+
+    .copy-status {
+      margin-top: 10px;
+      color: #bbf7d0;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      body::before,
+      body::after,
+      .topbar,
+      .menu,
+      .actions,
+      .report-actions,
+      .copy-status {
+        display: none !important;
+      }
+      .wrap {
+        max-width: none !important;
+        padding: 0 !important;
+      }
+      .panel,
+      .hero-card {
+        background: white !important;
+        color: black !important;
+        border: 1px solid #999 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        page-break-inside: avoid;
+      }
+      .result-card,
+      .table th,
+      .table td {
+        color: black !important;
+        border-color: #bbb !important;
+      }
+      canvas {
+        border: 1px solid #999 !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -454,6 +511,13 @@
             <tr><td>Charge équivalente par phase</td><td id="complexZ">-</td><td>R + jX selon la connexion choisie</td></tr>
           </tbody>
         </table>
+
+        <div class="report-actions">
+          <button class="btn primary" type="button" onclick="downloadPDFReport()">Télécharger le rapport PDF</button>
+          <button class="btn secondary" type="button" onclick="copyReportToClipboard()">Copier les données</button>
+        </div>
+        <div class="copy-status" id="copyStatus"></div>
+
       </section>
     </section>
   </main>
@@ -811,6 +875,116 @@
     applySavedBackground();
     refreshLabels();
     calculate();
+
+    function getCleanText(selector) {
+      const element = document.querySelector(selector);
+      return element ? element.innerText.replace(/\n{3,}/g, "\n\n").trim() : "";
+    }
+
+    function getInputSummary() {
+      const rows = [];
+      document.querySelectorAll("input, select").forEach(function(el) {
+        if (!el.id || el.type === "file") return;
+        const label = document.querySelector("label[for='" + el.id + "']");
+        const name = label ? label.innerText.trim() : el.id;
+        let value = "";
+        if (el.tagName.toLowerCase() === "select") {
+          value = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value;
+        } else {
+          value = el.value;
+        }
+        rows.push(name + " : " + value);
+      });
+      document.querySelectorAll("input[type='radio']:checked").forEach(function(el) {
+        const label = el.closest("label");
+        const name = el.name || "Option";
+        const value = label ? label.innerText.trim() : el.value;
+        rows.push(name + " : " + value);
+      });
+      return rows.join("\n");
+    }
+
+    function buildReportText() {
+      const title = document.querySelector("h1") ? document.querySelector("h1").innerText.trim() : "Rapport de calcul";
+      const now = new Date().toLocaleString("fr-CA");
+      const inputs = getInputSummary();
+      const results = Array.from(document.querySelectorAll(".result-card")).map(function(card) {
+        return card.innerText.replace(/\n+/g, " | ").trim();
+      }).join("\n");
+      const table = getCleanText(".table");
+      const warning = getCleanText(".warning");
+
+      return [
+        "JSB Electrical Tools",
+        title,
+        "Date du rapport : " + now,
+        "",
+        "=== DONNÉES D'ENTRÉE ===",
+        inputs,
+        "",
+        "=== RÉSULTATS ===",
+        results,
+        "",
+        "=== DÉTAILS TECHNIQUES ===",
+        table,
+        "",
+        "=== NOTE ===",
+        warning,
+        "",
+        "Rapport généré automatiquement à partir des valeurs affichées à l'écran."
+      ].join("\n");
+    }
+
+    async function copyReportToClipboard() {
+      const report = buildReportText();
+      const status = document.getElementById("copyStatus");
+      try {
+        await navigator.clipboard.writeText(report);
+        if (status) status.innerText = "Rapport copié dans le presse-papier.";
+      } catch (err) {
+        const textArea = document.createElement("textarea");
+        textArea.value = report;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        if (status) status.innerText = "Rapport copié dans le presse-papier.";
+      }
+    }
+
+    function downloadPDFReport() {
+      const report = buildReportText();
+      const title = document.querySelector("h1") ? document.querySelector("h1").innerText.trim() : "Rapport";
+      const printWindow = window.open("", "_blank");
+      const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; margin: 28px; color: #111827; }
+  h1 { margin-bottom: 4px; }
+  .subtitle { color: #475569; margin-bottom: 24px; }
+  pre { white-space: pre-wrap; font-family: Arial, Helvetica, sans-serif; font-size: 12.5px; line-height: 1.45; }
+  .box { border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; }
+  @page { margin: 18mm; }
+</style>
+</head>
+<body>
+<h1>${title}</h1>
+<div class="subtitle">JSB Electrical Tools - rapport généré localement</div>
+<div class="box"><pre>${report.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre></div>
+<script>
+  window.onload = function() { window.print(); };
+<\/script>
+</body>
+</html>`;
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
+
   </script>
 </body>
 </html>

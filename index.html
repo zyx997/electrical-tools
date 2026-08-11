@@ -1,47 +1,439 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>JSB Electrical Tools</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSB Electrical Tools</title>
+  <style>
+    :root {
+      --bg-overlay: rgba(5, 12, 25, 0.72);
+      --card: rgba(255, 255, 255, 0.12);
+      --card-hover: rgba(255, 255, 255, 0.22);
+      --text: #ffffff;
+      --muted: #cbd5e1;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --border: rgba(255, 255, 255, 0.20);
+    }
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    padding: 40px;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-h1 {
-    text-align: center;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(var(--bg-overlay), var(--bg-overlay)),
+        url("https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=1800&q=80");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
 
-.tile {
-    width: 300px;
-    margin: 30px auto;
-    padding: 20px;
-    background: white;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 28px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
 
-.tile a {
-    text-decoration: none;
-    color: #0078d4;
-    font-size: 20px;
-    font-weight: bold;
-}
-</style>
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
+    .brand strong {
+      font-size: 22px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .menu button,
+    .menu label {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .menu button:hover,
+    .menu label:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    #imageInput {
+      display: none;
+    }
+
+    .hero {
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 70px 24px 30px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(34px, 6vw, 72px);
+      line-height: 1.05;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    }
+
+    .hero p {
+      margin: 18px auto 0;
+      max-width: 750px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .search-box {
+      max-width: 600px;
+      margin: 30px auto 0;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 15px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      outline: none;
+      background: rgba(255, 255, 255, 0.14);
+      color: white;
+      font-size: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .search-box input::placeholder {
+      color: #e2e8f0;
+    }
+
+    .section {
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .section-title h2 {
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+    }
+
+    .tile {
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 20px;
+      border-radius: 22px;
+      color: white;
+      text-decoration: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.22);
+      backdrop-filter: blur(14px);
+      transition: transform 0.18s ease, background 0.18s ease, border 0.18s ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-5px);
+      background: var(--card-hover);
+      border-color: rgba(56, 189, 248, 0.70);
+    }
+
+    .tile .icon {
+      font-size: 34px;
+    }
+
+    .tile h3 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .tile p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .tag {
+      align-self: flex-start;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.18);
+      color: #bae6fd;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-size: 12px;
+    }
+
+    .tag.green {
+      background: rgba(34, 197, 94, 0.18);
+      color: #bbf7d0;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .footer {
+      max-width: 1150px;
+      margin: 30px auto 0;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 650px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .menu {
+        width: 100%;
+      }
+
+      .menu button,
+      .menu label {
+        flex: 1;
+        text-align: center;
+      }
+
+      .hero {
+        padding-top: 42px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>JSB Electrical Tools</strong>
+      <span>Boîte à outils personnelle pour calculs électriques triphasés</span>
+    </div>
 
-<h1>JSB Electrical Tools</h1>
+    <div class="menu">
+      <label for="imageInput">Changer le fond</label>
+      <input id="imageInput" type="file" accept="image/*">
+      <button type="button" onclick="resetBackground()">Fond par défaut</button>
+    </div>
+  </header>
 
-<div class="tile">
-<a href="test.html">Calculateur de test</a>
-</div>
+  <main>
+    <section class="hero">
+      <h1>Calculateurs électriques industriels</h1>
+      <p>
+        Portail personnel pour accéder rapidement à des outils de calcul triphasé,
+        transformateurs, moteurs, câbles, postes, court-circuit, facteur de puissance et lignes HT.
+      </p>
 
+      <div class="search-box">
+        <input id="searchInput" type="search" placeholder="Rechercher un calculateur... ex. transformateur, moteur, court-circuit">
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <h2>Calculateurs principaux</h2>
+      </div>
+
+      <div class="grid" id="toolGrid">
+        <a class="tile" href="test.html" data-name="test calculateur multiplier par 2">
+          <div class="icon">🧪</div>
+          <div>
+            <h3>Calculateur de test</h3>
+            <p>Page existante pour valider la navigation du site.</p>
+          </div>
+          <span class="tag green">Actif</span>
+        </a>
+
+        <a class="tile" href="triphase.html" data-name="triphasé kva kw courant facteur puissance">
+          <div class="icon">⚡</div>
+          <div>
+            <h3>Triphasé kW / kVA / A</h3>
+            <p>Courant, puissance apparente, puissance active et facteur de puissance.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="transformer.html" data-name="transformateur kva courant primaire secondaire impédance">
+          <div class="icon">🔷</div>
+          <div>
+            <h3>Transformateur</h3>
+            <p>Courants primaire et secondaire, kVA, tension, impédance et pertes.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="voltage-drop.html" data-name="chute tension cable conducteur longueur">
+          <div class="icon">📉</div>
+          <div>
+            <h3>Chute de tension</h3>
+            <p>Estimation de la chute selon courant, longueur, tension et conducteur.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="short-circuit.html" data-name="court-circuit iec 60909 fault current impedance">
+          <div class="icon">💥</div>
+          <div>
+            <h3>Court-circuit</h3>
+            <p>Calculs préliminaires de courant de défaut et équivalents d'impédance.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="motor.html" data-name="moteur démarrage courant fla lra duty class">
+          <div class="icon">⚙️</div>
+          <div>
+            <h3>Moteurs</h3>
+            <p>FLA, démarrage, service intermittent, classe d'isolation et duty cycle.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="power-factor.html" data-name="facteur puissance kvar correction condensateur">
+          <div class="icon">🟢</div>
+          <div>
+            <h3>Facteur de puissance</h3>
+            <p>Correction en kVAR, compensation et comparaison avant/après.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="ct-pt.html" data-name="ct pt transformateur courant potentiel ratio burden">
+          <div class="icon">📏</div>
+          <div>
+            <h3>CT / PT</h3>
+            <p>Ratios, conversion primaire/secondaire, burden et valeurs de lecture.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="busbar.html" data-name="busbar barre omnibus ampacity échauffement courant">
+          <div class="icon">🟧</div>
+          <div>
+            <h3>Busbar</h3>
+            <p>Courant admissible, échauffement et ordre de grandeur thermique.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="overhead-line.html" data-name="ligne ht acsr vibration sag tension dampers">
+          <div class="icon">🗼</div>
+          <div>
+            <h3>Lignes HT</h3>
+            <p>Flèche, tension mécanique, vibration éolienne et besoin de dampers.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="arc-flash.html" data-name="arc flash énergie incidente ppe ieee 1584">
+          <div class="icon">🔥</div>
+          <div>
+            <h3>Arc flash</h3>
+            <p>Page future pour estimations préliminaires et références de sécurité.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+
+        <a class="tile" href="unit-converter.html" data-name="conversion unités hp kw kva ampère volt ohm">
+          <div class="icon">🔁</div>
+          <div>
+            <h3>Conversions rapides</h3>
+            <p>HP, kW, kVA, A, V, ohms, mm², AWG, mils et autres unités utiles.</p>
+          </div>
+          <span class="tag">À créer</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    JSB Electrical Tools - Portail personnel. Les calculateurs doivent être validés avant utilisation pour conception ou décision d'ingénierie.
+  </footer>
+
+  <script>
+    const imageInput = document.getElementById("imageInput");
+    const searchInput = document.getElementById("searchInput");
+    const tiles = Array.from(document.querySelectorAll(".tile"));
+
+    const savedBackground = localStorage.getItem("jsb-background-image");
+    if (savedBackground) {
+      document.body.style.backgroundImage =
+        "linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('" + savedBackground + "')";
+    }
+
+    imageInput.addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageData = e.target.result;
+        localStorage.setItem("jsb-background-image", imageData);
+        document.body.style.backgroundImage =
+          "linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('" + imageData + "')";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function resetBackground() {
+      localStorage.removeItem("jsb-background-image");
+      document.body.style.backgroundImage =
+        "linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('https://images.unsplash.com/photo-1509395176047-4a66953fd231?auto=format&fit=crop&w=1800&q=80')";
+      imageInput.value = "";
+    }
+
+    searchInput.addEventListener("input", function() {
+      const query = searchInput.value.toLowerCase().trim();
+
+      tiles.forEach(function(tile) {
+        const name = tile.getAttribute("data-name").toLowerCase();
+        const text = tile.innerText.toLowerCase();
+        const match = name.includes(query) || text.includes(query);
+        tile.style.display = match ? "flex" : "none";
+      });
+    });
+  </script>
 </body>
 </html>

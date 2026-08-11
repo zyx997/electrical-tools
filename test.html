@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Calculateur de test</title>
+</head>
+
+<body>
+
+<h1>Mon premier calculateur</h1>
+
+<p>Entrez un nombre :</p>
+
+<input id="nombre" type="number">
+
+<button onclick="calculer()">
+Multiplier par 2
+</button>
+
+<h2 id="resultat"></h2>
+
+<script>
+function calculer() {
+
+    var valeur =
+    Number(document.getElementById("nombre").value);
+
+    var resultat =
+    valeur * 2;
+
+    document.getElementById("resultat").innerHTML =
+    resultat;
+}
+</script>
+
+</body>
+</html>

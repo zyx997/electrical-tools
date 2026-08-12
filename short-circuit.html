@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculateur de court-circuit disponible</title>
+  <style>
+    :root {
+      --bg1: #07111f;
+      --bg2: #0f2a44;
+      --panel: rgba(255,255,255,0.105);
+      --panel2: rgba(255,255,255,0.155);
+      --text: #eef7ff;
+      --muted: #b8c7d6;
+      --line: rgba(255,255,255,0.18);
+      --accent: #38bdf8;
+      --accent2: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 20px 55px rgba(0,0,0,0.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(56,189,248,0.25), transparent 28%),
+        radial-gradient(circle at 85% 13%, rgba(34,197,94,0.18), transparent 25%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; }
+
+    .page {
+      width: min(1480px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 48px;
+      overflow: visible !important;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      overflow: visible !important;
+    }
+
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 58px;
+      height: 58px;
+      border-radius: 17px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, rgba(56,189,248,0.98), rgba(34,197,94,0.9));
+      box-shadow: 0 16px 32px rgba(56,189,248,0.25);
+      font-size: 30px;
+    }
+
+    h1 { margin: 0; font-size: clamp(26px, 3vw, 42px); line-height: 1.06; }
+    .subtitle { margin-top: 6px; color: var(--muted); font-size: 15px; max-width: 900px; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      overflow: visible !important;
+    }
+
+    button, .file-label {
+      border: 1px solid rgba(255,255,255,0.18);
+      color: var(--text);
+      background: rgba(255,255,255,0.12);
+      padding: 10px 13px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.16);
+      user-select: none;
+    }
+    button:hover, .file-label:hover { transform: translateY(-1px); background: rgba(255,255,255,0.18); border-color: rgba(56,189,248,0.55); }
+    button.primary { background: linear-gradient(135deg, rgba(56,189,248,0.95), rgba(14,165,233,0.75)); border: none; }
+    button.good { background: linear-gradient(135deg, rgba(34,197,94,0.9), rgba(21,128,61,0.65)); border: none; }
+    button.danger { background: rgba(239,68,68,0.22); border-color: rgba(239,68,68,0.45); }
+    input[type="file"] { display: none; }
+
+    .notice {
+      margin: 14px 0 20px;
+      padding: 13px 16px;
+      border: 1px solid rgba(56,189,248,0.32);
+      background: rgba(8,47,73,0.44);
+      border-radius: 16px;
+      color: #dff6ff;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+      line-height: 1.45;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 430px 1fr;
+      gap: 22px;
+      align-items: start;
+      overflow: visible !important;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      overflow: visible !important;
+    }
+
+    .card h2, .card h3 {
+      margin: 0;
+      line-height: 1.15;
+    }
+
+    .card-header {
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      overflow: visible !important;
+    }
+
+    .card-body { padding: 18px; overflow: visible !important; }
+
+    .section-title {
+      margin: 20px 0 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.13);
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #e8f7ff;
+    }
+    .section-title:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .badge {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.17);
+      border: 1px solid rgba(56,189,248,0.38);
+      color: #dff7ff;
+    }
+
+    .field { margin-bottom: 12px; overflow: visible !important; }
+    .field label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+      color: #e7f5ff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .label-left { display: flex; align-items: center; gap: 7px; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+      padding: 10px 11px;
+      border-radius: 12px;
+      outline: none;
+      font-size: 14px;
+    }
+    input:focus, select:focus, textarea:focus { border-color: rgba(56,189,248,0.75); box-shadow: 0 0 0 3px rgba(56,189,248,0.14); }
+    select option { color: #0f172a; }
+    textarea { min-height: 70px; resize: vertical; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; overflow: visible !important; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 11px; overflow: visible !important; }
+
+    .info {
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.18);
+      border: 1px solid rgba(56,189,248,0.5);
+      color: #dff7ff;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: help;
+      flex: 0 0 auto;
+    }
+
+    #floatingTip {
+      position: fixed;
+      z-index: 2147483647;
+      max-width: 390px;
+      display: none;
+      pointer-events: none;
+      background: rgba(8,15,26,0.98);
+      border: 1px solid rgba(125,211,252,0.55);
+      color: #f8fbff;
+      padding: 12px 13px;
+      border-radius: 12px;
+      line-height: 1.36;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.55);
+      font-size: 13px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 14px;
+      overflow: visible !important;
+    }
+    .metric {
+      background: rgba(255,255,255,0.105);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 17px;
+      padding: 15px;
+      min-height: 116px;
+      overflow: visible !important;
+    }
+    .metric .label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .metric .value { font-size: 28px; font-weight: 900; margin: 8px 0 4px; color: white; }
+    .metric .unit { color: #cde9f8; font-size: 13px; }
+    .metric.good { border-color: rgba(34,197,94,0.38); background: rgba(34,197,94,0.105); }
+    .metric.warn { border-color: rgba(245,158,11,0.48); background: rgba(245,158,11,0.11); }
+    .metric.danger { border-color: rgba(239,68,68,0.48); background: rgba(239,68,68,0.13); }
+
+    .diagram-wrap {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 16px;
+      margin-top: 16px;
+      overflow: visible !important;
+    }
+
+    .svg-panel, .chart-panel, .table-panel {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 17px;
+      padding: 14px;
+      overflow: visible !important;
+    }
+
+    svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+    .node { fill: rgba(15,23,42,0.98); stroke: rgba(125,211,252,0.85); stroke-width: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.35)); }
+    .node2 { fill: rgba(8,47,73,0.98); stroke: rgba(34,197,94,0.8); stroke-width: 2; }
+    .nodeText { fill: #f8fbff; font-weight: 800; font-size: 15px; }
+    .nodeSub { fill: #b8d9ea; font-size: 12px; }
+    .flow { stroke: rgba(226,247,255,0.78); stroke-width: 3; marker-end: url(#arrow); }
+    .fault { fill: #fbbf24; font-weight: 900; font-size: 14px; }
+
+    canvas { width: 100%; max-height: 260px; background: rgba(2,6,23,0.18); border-radius: 12px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    th, td { padding: 10px 9px; border-bottom: 1px solid rgba(255,255,255,0.12); text-align: left; vertical-align: top; }
+    th { color: #dff7ff; background: rgba(255,255,255,0.09); }
+    td { color: #edf8ff; }
+    tr:last-child td { border-bottom: none; }
+    .small { font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.08);
+      color: #e9f8ff;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .project-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .saved-list { display: grid; gap: 8px; margin-top: 10px; }
+    .saved-item {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 9px;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.07);
+      border-radius: 13px;
+    }
+    .saved-item strong { font-size: 13px; }
+    .saved-item span { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+    .footer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .print-only { display: none; }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .actions { justify-content: flex-start; }
+      .diagram-wrap { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+    }
+    @media (max-width: 650px) {
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+      .project-row, .saved-item { grid-template-columns: 1fr; }
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body { background: white; color: #0f172a; }
+      .page { width: 100%; padding: 0; }
+      .actions, .left-panel, .notice, .footer-actions button, .file-label { display: none !important; }
+      .layout { display: block; }
+      .card { box-shadow: none; border: 1px solid #d0d7de; background: white; color: #0f172a; page-break-inside: avoid; }
+      .card-header, .card-body, .svg-panel, .chart-panel, .table-panel, .metric { background: white; color: #0f172a; border-color: #d0d7de; }
+      .metric .value, .metric .label, .metric .unit, td, th, .small, .subtitle { color: #0f172a; }
+      .print-only { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div id="floatingTip"></div>
+  <main class="page">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">⚡</div>
+        <div>
+          <h1>Calculateur de court-circuit disponible</h1>
+          <div class="subtitle">Analyse simplifiée source → fusible/protection → transformateur → bus secondaire, avec niveaux de défaut à chaque étage.</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" onclick="calculateAll()">Recalculer</button>
+        <button onclick="copyResults()">Copier les données</button>
+        <button onclick="printReport()">Télécharger PDF</button>
+        <button onclick="resetDefaults()">Réinitialiser</button>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>Note importante :</strong> cet outil est un calculateur de haut niveau, comparable à une vue préliminaire d'étude de court-circuit. Il ne remplace pas une étude complète EasyPower, ETAP ou SKM. Les effets de contribution moteurs, câbles détaillés, protections en série, régime de neutre, tolérances de transformateur, arc flash et courbes temps-courant doivent être validés séparément.
+    </div>
+
+    <div class="layout">
+      <section class="card left-panel">
+        <div class="card-header">
+          <h2>Entrées</h2>
+          <span class="badge">Projet local</span>
+        </div>
+        <div class="card-body">
+          <div class="section-title">📁 Gestion de projet</div>
+          <div class="field">
+            <label><span class="label-left">Nom du projet <span class="info" data-tip="Nom utilisé pour sauvegarder ce scénario dans le navigateur. Les projets sont conservés localement sur cet appareil avec localStorage.">i</span></span></label>
+            <input id="projectName" value="Étude court-circuit 13.8 kV / 480 V" />
+          </div>
+          <div class="project-row">
+            <select id="projectSelect"></select>
+            <button class="good" onclick="saveProject()">Sauver</button>
+            <button onclick="loadSelectedProject()">Charger</button>
+          </div>
+          <div class="actions" style="justify-content:flex-start; margin-bottom:12px;">
+            <button class="danger" onclick="deleteSelectedProject()">Supprimer</button>
+            <button onclick="exportProject()">Exporter JSON</button>
+            <label class="file-label" for="importFile">Importer JSON</label>
+            <input id="importFile" type="file" accept="application/json,.json" onchange="importProject(event)" />
+          </div>
+
+          <div class="section-title">1️⃣ Source principale</div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">Type de circuit <span class="info" data-tip="Triphasé utilise Icc = Scc / (√3 × kV). Monophasé utilise Icc = Scc / kV. Pour un réseau industriel 13.8 kV, le triphasé est généralement le mode utilisé pour les niveaux de court-circuit disponibles.">i</span></span></label>
+              <select id="phaseMode">
+                <option value="3p">Triphasé</option>
+                <option value="1p">Monophasé</option>
+              </select>
+            </div>
+            <div class="field">
+              <label><span class="label-left">Fréquence <span class="info" data-tip="La fréquence est indiquée pour documentation. Elle n'intervient pas directement dans ce modèle simplifié RMS symétrique.">i</span></span></label>
+              <select id="frequency"><option>60 Hz</option><option>50 Hz</option></select>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">Tension source kV LL <span class="info" data-tip="Tension ligne-ligne au niveau de la source ou du bus primaire avant la protection. Exemple : 13.8 kV.">i</span></span></label>
+              <input id="sourceKV" type="number" step="0.001" value="13.8" />
+            </div>
+            <div class="field">
+              <label><span class="label-left">Mode d'entrée source <span class="info" data-tip="Vous pouvez entrer soit le MVA de court-circuit disponible, soit le courant de court-circuit disponible en kA. L'autre valeur sera déduite automatiquement.">i</span></span></label>
+              <select id="sourceInputMode">
+                <option value="mva">MVA de court-circuit</option>
+                <option value="ka">Courant de court-circuit kA</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">Scc source MVA <span class="info" data-tip="Puissance de court-circuit disponible au bus source. Plus ce MVA est élevé, plus l'impédance équivalente de source est faible et plus le courant de défaut est élevé.">i</span></span></label>
+              <input id="sourceMVA" type="number" step="0.1" value="250" />
+            </div>
+            <div class="field">
+              <label><span class="label-left">Icc source kA <span class="info" data-tip="Courant de court-circuit symétrique RMS disponible au niveau source. Si le mode MVA est choisi, cette valeur est recalculée automatiquement.">i</span></span></label>
+              <input id="sourceKA" type="number" step="0.01" value="10.46" />
+            </div>
+          </div>
+          <div class="field">
+            <label><span class="label-left">X/R source <span class="info" data-tip="Ratio réactance/résistance du réseau équivalent. Il influence surtout le courant de crête asymétrique estimé. Une source forte a souvent un X/R plus élevé.">i</span></span></label>
+            <input id="sourceXR" type="number" step="0.1" value="10" />
+          </div>
+
+          <div class="section-title">2️⃣ Fusible ou protection primaire</div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">Type de protection <span class="info" data-tip="Dans ce modèle RMS simplifié, un fusible standard n'abaisse pas le courant de défaut disponible permanent. Une option de facteur de limitation est offerte pour représenter approximativement un fusible limiteur de courant.">i</span></span></label>
+              <select id="protectionType">
+                <option value="none">Aucune</option>
+                <option value="fuse" selected>Fusible</option>
+                <option value="breaker">Disjoncteur</option>
+              </select>
+            </div>
+            <div class="field">
+              <label><span class="label-left">Courant nominal A <span class="info" data-tip="Courant nominal de la protection primaire. Cette valeur sert à documenter l'étude. Elle ne limite pas automatiquement le courant RMS disponible sauf si un facteur de limitation est appliqué.">i</span></span></label>
+              <input id="protectionA" type="number" step="1" value="50" />
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">Impédance série primaire Ω <span class="info" data-tip="Impédance additionnelle entre le bus source et le transformateur, vue au primaire : câbles, connexions, réactance série ou impédance approximative de protection.">i</span></span></label>
+              <input id="seriesOhm" type="number" step="0.0001" value="0.015" />
+            </div>
+            <div class="field">
+              <label><span class="label-left">X/R série <span class="info" data-tip="Ratio X/R de l'impédance série ajoutée. Si inconnu, utiliser une valeur faible à moyenne pour des conducteurs et plus élevée pour une réactance.">i</span></span></label>
+              <input id="seriesXR" type="number" step="0.1" value="2" />
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">Facteur limitation RMS <span class="info" data-tip="Facteur simplifié appliqué au courant après protection. 1.00 = aucune limitation. Une valeur plus basse représente une limitation approximative, mais ne remplace pas les courbes et données du fabricant.">i</span></span></label>
+              <input id="limitFactor" type="number" step="0.01" min="0.05" max="1" value="1.00" />
+            </div>
+            <div class="field">
+              <label><span class="label-left">Pouvoir de coupure kAIC <span class="info" data-tip="Pouvoir de coupure nominal de la protection. L'outil le compare au courant disponible à cet emplacement et indique une marge simple.">i</span></span></label>
+              <input id="protectionKAIC" type="number" step="0.1" value="25" />
+            </div>
+          </div>
+
+          <div class="section-title">3️⃣ Transformateur</div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">Puissance kVA <span class="info" data-tip="Puissance nominale du transformateur. Pour un transformateur triphasé, il s'agit de la puissance totale 3 phases. Pour monophasé, il s'agit de la puissance du transformateur monophasé.">i</span></span></label>
+              <input id="txKVA" type="number" step="1" value="667" />
+            </div>
+            <div class="field">
+              <label><span class="label-left">Impédance %Z <span class="info" data-tip="Impédance du transformateur en pourcentage sur sa propre base kVA et tension. C'est généralement le paramètre qui influence le plus le courant de court-circuit secondaire.">i</span></span></label>
+              <input id="txZpct" type="number" step="0.01" value="5.75" />
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">Primaire kV LL <span class="info" data-tip="Tension nominale primaire du transformateur. Elle devrait correspondre approximativement à la tension source pour éviter un ratio incohérent.">i</span></span></label>
+              <input id="txPriKV" type="number" step="0.001" value="13.8" />
+            </div>
+            <div class="field">
+              <label><span class="label-left">Secondaire V LL <span class="info" data-tip="Tension ligne-ligne secondaire au bus aval. Exemple : 480 V.">i</span></span></label>
+              <input id="txSecV" type="number" step="1" value="480" />
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label><span class="label-left">X/R transfo <span class="info" data-tip="Ratio X/R approximatif du transformateur. Il sert à répartir l'impédance %Z entre R et X pour estimer le courant de crête.">i</span></span></label>
+              <input id="txXR" type="number" step="0.1" value="7" />
+            </div>
+            <div class="field">
+              <label><span class="label-left">Marge recommandée % <span class="info" data-tip="Marge appliquée pour recommander une cote minimale de SCCR/AIC. Exemple : 25 % signifie que la recommandation considère 1.25 × Icc calculé.">i</span></span></label>
+              <input id="marginPct" type="number" step="1" value="25" />
+            </div>
+          </div>
+          <div class="field">
+            <label><span class="label-left">Notes du scénario <span class="info" data-tip="Notes libres pour documenter l'hypothèse, l'emplacement, le transformateur ou le projet.">i</span></span></label>
+            <textarea id="notes">Analyse préliminaire haut niveau. Valider avec étude complète et données fabricant.</textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>Résultats calculés</h2>
+            <div class="small" id="calcStamp">Dernier calcul : --</div>
+          </div>
+          <span class="pill" id="statusPill">État : --</span>
+        </div>
+        <div class="card-body">
+          <div class="results-grid">
+            <div class="metric" id="mSource">
+              <div class="label">Court-circuit source</div>
+              <div class="value" id="rSourceKA">--</div>
+              <div class="unit">kA RMS sym.</div>
+            </div>
+            <div class="metric" id="mFuse">
+              <div class="label">Après protection</div>
+              <div class="value" id="rFuseKA">--</div>
+              <div class="unit">kA RMS sym.</div>
+            </div>
+            <div class="metric" id="mSec">
+              <div class="label">Bus secondaire</div>
+              <div class="value" id="rSecKA">--</div>
+              <div class="unit">kA @ secondaire</div>
+            </div>
+            <div class="metric" id="mSCCR">
+              <div class="label">SCCR/AIC recommandé</div>
+              <div class="value" id="rSCCR">--</div>
+              <div class="unit">kA minimum avec marge</div>
+            </div>
+          </div>
+
+          <div class="diagram-wrap">
+            <div class="svg-panel">
+              <h3>Diagramme unifilaire simplifié</h3>
+              <div class="small">Les valeurs affichées représentent les niveaux de défaut calculés aux principaux points du circuit.</div>
+              <svg viewBox="0 0 760 520" role="img" aria-label="Diagramme unifilaire court-circuit">
+                <defs>
+                  <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L8,3 z" fill="rgba(226,247,255,0.78)" />
+                  </marker>
+                </defs>
+                <rect class="node" x="235" y="32" width="290" height="74" rx="18" />
+                <text class="nodeText" x="380" y="62" text-anchor="middle">SOURCE</text>
+                <text class="nodeSub" id="svgSourceSub" x="380" y="87" text-anchor="middle">--</text>
+                <text class="fault" id="svgSourceKA" x="548" y="78">-- kA</text>
+
+                <line class="flow" x1="380" y1="108" x2="380" y2="165" />
+                <rect class="node" x="235" y="168" width="290" height="74" rx="18" />
+                <text class="nodeText" x="380" y="198" text-anchor="middle">FUSIBLE / PROTECTION</text>
+                <text class="nodeSub" id="svgFuseSub" x="380" y="223" text-anchor="middle">--</text>
+                <text class="fault" id="svgFuseKA" x="548" y="214">-- kA</text>
+
+                <line class="flow" x1="380" y1="244" x2="380" y2="301" />
+                <rect class="node2" x="235" y="304" width="290" height="74" rx="18" />
+                <text class="nodeText" x="380" y="334" text-anchor="middle">TRANSFORMATEUR</text>
+                <text class="nodeSub" id="svgTxSub" x="380" y="359" text-anchor="middle">--</text>
+                <text class="fault" id="svgTxKA" x="548" y="350">-- kA</text>
+
+                <line class="flow" x1="380" y1="380" x2="380" y2="437" />
+                <rect class="node" x="235" y="440" width="290" height="58" rx="18" />
+                <text class="nodeText" x="380" y="474" text-anchor="middle">BUS SECONDAIRE</text>
+                <text class="fault" id="svgBusKA" x="548" y="474">-- kA</text>
+              </svg>
+            </div>
+
+            <div class="chart-panel">
+              <h3>Graphiques rapides</h3>
+              <div class="small">À gauche : niveaux de court-circuit. À droite : contribution des impédances au secondaire.</div>
+              <canvas id="chartCanvas" width="760" height="520"></canvas>
+            </div>
+          </div>
+
+          <div class="diagram-wrap">
+            <div class="table-panel">
+              <h3>Détail par étage</h3>
+              <table>
+                <thead>
+                  <tr><th>Étage</th><th>Tension</th><th>Icc RMS</th><th>Scc</th><th>X/R</th><th>Crête estimée</th></tr>
+                </thead>
+                <tbody id="stageTable"></tbody>
+              </table>
+            </div>
+            <div class="table-panel">
+              <h3>Impédances équivalentes</h3>
+              <table>
+                <thead>
+                  <tr><th>Élément</th><th>R Ω</th><th>X Ω</th><th>|Z| Ω</th><th>Référence</th></tr>
+                </thead>
+                <tbody id="impTable"></tbody>
+              </table>
+              <div class="small" style="margin-top:10px;">Les impédances source et série sont référées au secondaire pour le calcul final au bus secondaire.</div>
+            </div>
+          </div>
+
+          <div class="footer-actions">
+            <div class="small" id="summaryText">Résumé : --</div>
+            <div class="actions">
+              <button onclick="copyResults()">Copier les données</button>
+              <button onclick="printReport()">Télécharger PDF</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const STORE_KEY = "shortCircuitProjects_v1";
+    const LAST_KEY = "shortCircuitLastState_v1";
+    const $ = id => document.getElementById(id);
+    const sqrt3 = Math.sqrt(3);
+    let lastResults = null;
+
+    const inputIds = [
+      "projectName", "phaseMode", "frequency", "sourceKV", "sourceInputMode", "sourceMVA", "sourceKA", "sourceXR",
+      "protectionType", "protectionA", "seriesOhm", "seriesXR", "limitFactor", "protectionKAIC",
+      "txKVA", "txZpct", "txPriKV", "txSecV", "txXR", "marginPct", "notes"
+    ];
+
+    function n(id, fallback = 0) {
+      const v = parseFloat($(id).value);
+      return Number.isFinite(v) ? v : fallback;
+    }
+
+    function fmt(v, d = 2) {
+      if (!Number.isFinite(v)) return "--";
+      return Number(v).toLocaleString("fr-CA", { maximumFractionDigits: d, minimumFractionDigits: d });
+    }
+    function fmt0(v) {
+      if (!Number.isFinite(v)) return "--";
+      return Number(v).toLocaleString("fr-CA", { maximumFractionDigits: 0 });
+    }
+
+    function zParts(zAbs, xr) {
+      xr = Math.max(0.0001, xr || 0.0001);
+      const r = zAbs / Math.sqrt(1 + xr * xr);
+      const x = r * xr;
+      return { r, x, z: zAbs, xr };
+    }
+
+    function mag(r, x) { return Math.sqrt(r*r + x*x); }
+    function xrOf(r, x) { return Math.abs(r) < 1e-12 ? 999 : x / r; }
+
+    function asymPeakFactor(xr) {
+      const safe = Math.max(0, Math.min(80, xr || 0));
+      const kappa = 1.02 + 0.98 * Math.exp(-3 / Math.max(0.01, safe));
+      return Math.sqrt(2) * kappa;
+    }
+
+    function sccFromIk(kv, ka, phaseMode) {
+      return phaseMode === "3p" ? sqrt3 * kv * ka : kv * ka;
+    }
+
+    function ikFromScc(kv, mva, phaseMode) {
+      return phaseMode === "3p" ? mva / (sqrt3 * kv) : mva / kv;
+    }
+
+    function baseZ(kvLL, mva, phaseMode) {
+      // ohms using kV and MVA. Same expression for 3p line-line base and 1p simple base if kv is circuit voltage.
+      return (kvLL * kvLL) / Math.max(mva, 1e-9);
+    }
+
+    function getState() {
+      const state = {};
+      inputIds.forEach(id => state[id] = $(id).value);
+      return state;
+    }
+
+    function applyState(state) {
+      if (!state) return;
+      inputIds.forEach(id => { if (state[id] !== undefined && $(id)) $(id).value = state[id]; });
+      calculateAll(false);
+    }
+
+    function calculateAll(saveLast = true) {
+      const phaseMode = $("phaseMode").value;
+      const sourceKV = n("sourceKV", 13.8);
+      let sourceMVA = n("sourceMVA", 250);
+      let sourceKA = n("sourceKA", 10);
+      const sourceXR = n("sourceXR", 10);
+      const txKVA = n("txKVA", 667);
+      const txZpct = n("txZpct", 5.75);
+      const txPriKV = n("txPriKV", sourceKV);
+      const txSecV = n("txSecV", 480);
+      const txSecKV = txSecV / 1000;
+      const txXR = n("txXR", 7);
+      const seriesOhm = Math.max(0, n("seriesOhm", 0));
+      const seriesXR = n("seriesXR", 2);
+      const limitFactor = Math.min(1, Math.max(0.05, n("limitFactor", 1)));
+      const protectionKAIC = n("protectionKAIC", 25);
+      const margin = 1 + Math.max(0, n("marginPct", 25)) / 100;
+
+      if ($("sourceInputMode").value === "mva") {
+        sourceKA = ikFromScc(sourceKV, sourceMVA, phaseMode);
+        $("sourceKA").value = sourceKA.toFixed(3);
+      } else {
+        sourceMVA = sccFromIk(sourceKV, sourceKA, phaseMode);
+        $("sourceMVA").value = sourceMVA.toFixed(3);
+      }
+
+      const zSrcAbs = baseZ(sourceKV, sourceMVA, phaseMode);
+      const zSrc = zParts(zSrcAbs, sourceXR);
+      const zSeries = zParts(seriesOhm, seriesXR);
+
+      const rPrimAfter = zSrc.r + zSeries.r;
+      const xPrimAfter = zSrc.x + zSeries.x;
+      const zPrimAfter = mag(rPrimAfter, xPrimAfter);
+      const sccAfterMVA = sourceKV * sourceKV / Math.max(zPrimAfter, 1e-12);
+      const ikAfterRaw = ikFromScc(sourceKV, sccAfterMVA, phaseMode);
+      const ikAfter = ikAfterRaw * limitFactor;
+      const xrAfter = xrOf(rPrimAfter, xPrimAfter);
+
+      const ratioSecPri = txSecKV / txPriKV;
+      const rSrcSec = zSrc.r * ratioSecPri * ratioSecPri;
+      const xSrcSec = zSrc.x * ratioSecPri * ratioSecPri;
+      const rSeriesSec = zSeries.r * ratioSecPri * ratioSecPri;
+      const xSeriesSec = zSeries.x * ratioSecPri * ratioSecPri;
+
+      const txMVA = txKVA / 1000;
+      const zTxBase = (txSecKV * txSecKV) / Math.max(txMVA, 1e-12);
+      const zTxAbs = zTxBase * txZpct / 100;
+      const zTx = zParts(zTxAbs, txXR);
+
+      const rTotalSec = rSrcSec + rSeriesSec + zTx.r;
+      const xTotalSec = xSrcSec + xSeriesSec + zTx.x;
+      const zTotalSec = mag(rTotalSec, xTotalSec);
+      let ikSec = phaseMode === "3p"
+        ? txSecV / (sqrt3 * Math.max(zTotalSec, 1e-12)) / 1000
+        : txSecV / Math.max(zTotalSec, 1e-12) / 1000;
+      ikSec = ikSec * limitFactor;
+      const sccSecMVA = sccFromIk(txSecKV, ikSec, phaseMode);
+      const xrSec = xrOf(rTotalSec, xTotalSec);
+      const secPeak = ikSec * asymPeakFactor(xrSec);
+      const sourcePeak = sourceKA * asymPeakFactor(sourceXR);
+      const fusePeak = ikAfter * asymPeakFactor(xrAfter);
+      const recommended = Math.ceil((ikSec * margin) / 5) * 5;
+
+      lastResults = {
+        phaseMode, sourceKV, sourceMVA, sourceKA, sourceXR, zSrc, zSeries, ikAfter, ikAfterRaw, xrAfter,
+        txKVA, txZpct, txPriKV, txSecV, txSecKV, zTx, rSrcSec, xSrcSec, rSeriesSec, xSeriesSec,
+        rTotalSec, xTotalSec, zTotalSec, ikSec, sccSecMVA, xrSec, secPeak, sourcePeak, fusePeak,
+        recommended, protectionKAIC, margin, timestamp: new Date().toLocaleString("fr-CA")
+      };
+
+      renderResults();
+      if (saveLast) localStorage.setItem(LAST_KEY, JSON.stringify(getState()));
+    }
+
+    function setMetricClass(id, value, rating) {
+      const el = $(id);
+      el.classList.remove("good", "warn", "danger");
+      if (!Number.isFinite(value) || !Number.isFinite(rating) || rating <= 0) return;
+      const ratio = value / rating;
+      if (ratio <= 0.8) el.classList.add("good");
+      else if (ratio <= 1) el.classList.add("warn");
+      else el.classList.add("danger");
+    }
+
+    function renderResults() {
+      const r = lastResults;
+      if (!r) return;
+      $("rSourceKA").textContent = fmt(r.sourceKA, 2);
+      $("rFuseKA").textContent = fmt(r.ikAfter, 2);
+      $("rSecKA").textContent = fmt(r.ikSec, 2);
+      $("rSCCR").textContent = fmt0(r.recommended);
+      $("calcStamp").textContent = "Dernier calcul : " + r.timestamp;
+
+      const status = r.ikSec <= r.protectionKAIC ? "OK vs kAIC saisi" : "Attention : Icc > kAIC saisi";
+      $("statusPill").textContent = "État : " + status;
+      $("statusPill").style.borderColor = r.ikSec <= r.protectionKAIC ? "rgba(34,197,94,.55)" : "rgba(239,68,68,.55)";
+
+      setMetricClass("mFuse", r.ikAfter, r.protectionKAIC);
+      setMetricClass("mSec", r.ikSec, r.recommended / r.margin);
+      $("mSource").classList.remove("good", "warn", "danger");
+      $("mSCCR").classList.remove("good", "warn", "danger");
+
+      $("svgSourceSub").textContent = `${fmt(r.sourceKV, 3)} kV, Scc ${fmt(r.sourceMVA, 1)} MVA`;
+      $("svgSourceKA").textContent = `${fmt(r.sourceKA, 2)} kA`;
+      $("svgFuseSub").textContent = `${$("protectionType").value}, ${fmt(r.ikAfterRaw, 2)} kA brut, facteur ${fmt(n("limitFactor",1),2)}`;
+      $("svgFuseKA").textContent = `${fmt(r.ikAfter, 2)} kA`;
+      $("svgTxSub").textContent = `${fmt0(r.txKVA)} kVA, Z ${fmt(r.txZpct, 2)} %, ${fmt(r.txPriKV,3)} kV / ${fmt0(r.txSecV)} V`;
+      $("svgTxKA").textContent = `${fmt(r.ikSec, 2)} kA`;
+      $("svgBusKA").textContent = `${fmt(r.ikSec, 2)} kA`;
+
+      $("stageTable").innerHTML = `
+        <tr><td>Source principale</td><td>${fmt(r.sourceKV,3)} kV</td><td>${fmt(r.sourceKA,2)} kA</td><td>${fmt(r.sourceMVA,1)} MVA</td><td>${fmt(r.sourceXR,1)}</td><td>${fmt(r.sourcePeak,1)} kA peak</td></tr>
+        <tr><td>Après fusible / protection</td><td>${fmt(r.sourceKV,3)} kV</td><td>${fmt(r.ikAfter,2)} kA</td><td>${fmt(sccFromIk(r.sourceKV, r.ikAfter, r.phaseMode),1)} MVA</td><td>${fmt(r.xrAfter,1)}</td><td>${fmt(r.fusePeak,1)} kA peak</td></tr>
+        <tr><td>Bus secondaire transformateur</td><td>${fmt0(r.txSecV)} V</td><td>${fmt(r.ikSec,2)} kA</td><td>${fmt(r.sccSecMVA,2)} MVA</td><td>${fmt(r.xrSec,1)}</td><td>${fmt(r.secPeak,1)} kA peak</td></tr>
+      `;
+
+      const zSrcSec = mag(r.rSrcSec, r.xSrcSec);
+      const zSeriesSec = mag(r.rSeriesSec, r.xSeriesSec);
+      $("impTable").innerHTML = `
+        <tr><td>Source référée secondaire</td><td>${fmt(r.rSrcSec,6)}</td><td>${fmt(r.xSrcSec,6)}</td><td>${fmt(zSrcSec,6)}</td><td>Secondaire</td></tr>
+        <tr><td>Série primaire référée secondaire</td><td>${fmt(r.rSeriesSec,6)}</td><td>${fmt(r.xSeriesSec,6)}</td><td>${fmt(zSeriesSec,6)}</td><td>Secondaire</td></tr>
+        <tr><td>Transformateur</td><td>${fmt(r.zTx.r,6)}</td><td>${fmt(r.zTx.x,6)}</td><td>${fmt(r.zTx.z,6)}</td><td>Secondaire</td></tr>
+        <tr><td><strong>Total au bus secondaire</strong></td><td><strong>${fmt(r.rTotalSec,6)}</strong></td><td><strong>${fmt(r.xTotalSec,6)}</strong></td><td><strong>${fmt(r.zTotalSec,6)}</strong></td><td>Secondaire</td></tr>
+      `;
+
+      $("summaryText").textContent = `Résumé : Icc source ${fmt(r.sourceKA,2)} kA, après protection ${fmt(r.ikAfter,2)} kA, bus secondaire ${fmt(r.ikSec,2)} kA. SCCR/AIC recommandé avec marge : ${fmt0(r.recommended)} kA.`;
+      drawCharts();
+    }
+
+    function drawCharts() {
+      const r = lastResults;
+      const canvas = $("chartCanvas");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = "rgba(2,6,23,0.10)";
+      ctx.fillRect(0,0,W,H);
+      ctx.font = "bold 22px Segoe UI";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText("Niveaux Icc", 34, 42);
+      ctx.fillText("Impédances au secondaire", 402, 42);
+
+      const bars = [
+        { label: "Source", val: r.sourceKA, color: "#38bdf8" },
+        { label: "Protection", val: r.ikAfter, color: "#f59e0b" },
+        { label: "Sec.", val: r.ikSec, color: "#22c55e" }
+      ];
+      const maxI = Math.max(...bars.map(b=>b.val), 1);
+      bars.forEach((b, i) => {
+        const x = 44 + i*105;
+        const h = 310 * b.val / maxI;
+        const y = 405 - h;
+        ctx.fillStyle = "rgba(255,255,255,0.15)";
+        ctx.fillRect(x, 95, 58, 310);
+        ctx.fillStyle = b.color;
+        roundRect(ctx, x, y, 58, h, 10, true);
+        ctx.fillStyle = "#e9f8ff";
+        ctx.font = "bold 17px Segoe UI";
+        ctx.fillText(fmt(b.val,1), x-4, y-10);
+        ctx.font = "13px Segoe UI";
+        ctx.fillText(b.label, x-8, 432);
+      });
+
+      const parts = [
+        { label: "Source", z: mag(r.rSrcSec, r.xSrcSec), color: "#38bdf8" },
+        { label: "Série", z: mag(r.rSeriesSec, r.xSeriesSec), color: "#f59e0b" },
+        { label: "Transfo", z: r.zTx.z, color: "#22c55e" }
+      ];
+      const total = parts.reduce((a,p)=>a+p.z,0) || 1;
+      let y = 105;
+      parts.forEach(p => {
+        const w = 290 * p.z / total;
+        ctx.fillStyle = p.color;
+        roundRect(ctx, 410, y, Math.max(2,w), 38, 10, true);
+        ctx.fillStyle = "#effcff";
+        ctx.font = "bold 14px Segoe UI";
+        ctx.fillText(`${p.label} : ${fmt(p.z,6)} Ω`, 410, y + 62);
+        y += 105;
+      });
+      ctx.strokeStyle = "rgba(255,255,255,0.20)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(370,70); ctx.lineTo(370,465); ctx.stroke();
+    }
+
+    function roundRect(ctx, x, y, w, h, r, fill) {
+      if (h < 0) { y += h; h = Math.abs(h); }
+      r = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+r, y);
+      ctx.arcTo(x+w, y, x+w, y+h, r);
+      ctx.arcTo(x+w, y+h, x, y+h, r);
+      ctx.arcTo(x, y+h, x, y, r);
+      ctx.arcTo(x, y, x+w, y, r);
+      ctx.closePath();
+      if (fill) ctx.fill();
+    }
+
+    function saveProject() {
+      const projects = getProjects();
+      const name = ($("projectName").value || "Projet sans nom").trim();
+      projects[name] = { savedAt: new Date().toISOString(), state: getState() };
+      localStorage.setItem(STORE_KEY, JSON.stringify(projects));
+      refreshProjectList(name);
+      calculateAll();
+    }
+
+    function getProjects() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+      catch { return {}; }
+    }
+
+    function refreshProjectList(selectedName) {
+      const projects = getProjects();
+      const names = Object.keys(projects).sort((a,b)=>a.localeCompare(b));
+      $("projectSelect").innerHTML = names.length
+        ? names.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("")
+        : `<option value="">Aucun projet sauvegardé</option>`;
+      if (selectedName && projects[selectedName]) $("projectSelect").value = selectedName;
+    }
+
+    function loadSelectedProject() {
+      const name = $("projectSelect").value;
+      const projects = getProjects();
+      if (projects[name]) applyState(projects[name].state);
+    }
+
+    function deleteSelectedProject() {
+      const name = $("projectSelect").value;
+      if (!name) return;
+      const projects = getProjects();
+      delete projects[name];
+      localStorage.setItem(STORE_KEY, JSON.stringify(projects));
+      refreshProjectList();
+    }
+
+    function exportProject() {
+      calculateAll();
+      const payload = { exportedAt: new Date().toISOString(), app: "short-circuit", state: getState(), results: lastResults };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const safe = ($("projectName").value || "short-circuit").replace(/[^a-z0-9-_]+/gi, "_");
+      a.href = url;
+      a.download = `${safe}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importProject(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (data.state) applyState(data.state);
+          saveProject();
+        } catch (e) {
+          alert("Fichier JSON invalide.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    }
+
+    function copyResults() {
+      calculateAll();
+      const r = lastResults;
+      const txt = `Calcul court-circuit - ${$("projectName").value}\n\n` +
+        `Type de circuit: ${r.phaseMode === "3p" ? "Triphasé" : "Monophasé"}\n` +
+        `Source: ${fmt(r.sourceKV,3)} kV, Scc ${fmt(r.sourceMVA,1)} MVA, Icc ${fmt(r.sourceKA,2)} kA, X/R ${fmt(r.sourceXR,1)}\n` +
+        `Après protection: Icc ${fmt(r.ikAfter,2)} kA, X/R ${fmt(r.xrAfter,1)}, peak ${fmt(r.fusePeak,1)} kA\n` +
+        `Transformateur: ${fmt0(r.txKVA)} kVA, ${fmt(r.txPriKV,3)} kV / ${fmt0(r.txSecV)} V, Z ${fmt(r.txZpct,2)} %, X/R ${fmt(n("txXR"),1)}\n` +
+        `Bus secondaire: Icc ${fmt(r.ikSec,2)} kA, Scc ${fmt(r.sccSecMVA,2)} MVA, X/R ${fmt(r.xrSec,1)}, peak ${fmt(r.secPeak,1)} kA\n` +
+        `SCCR/AIC recommandé avec marge: ${fmt0(r.recommended)} kA\n\n` +
+        `Notes: ${$("notes").value}`;
+      navigator.clipboard.writeText(txt).then(() => alert("Données copiées dans le presse-papiers."));
+    }
+
+    function printReport() {
+      calculateAll();
+      window.print();
+    }
+
+    function resetDefaults() {
+      const defaults = {
+        projectName: "Étude court-circuit 13.8 kV / 480 V",
+        phaseMode: "3p", frequency: "60 Hz", sourceKV: "13.8", sourceInputMode: "mva", sourceMVA: "250", sourceKA: "10.46", sourceXR: "10",
+        protectionType: "fuse", protectionA: "50", seriesOhm: "0.015", seriesXR: "2", limitFactor: "1.00", protectionKAIC: "25",
+        txKVA: "667", txZpct: "5.75", txPriKV: "13.8", txSecV: "480", txXR: "7", marginPct: "25",
+        notes: "Analyse préliminaire haut niveau. Valider avec étude complète et données fabricant."
+      };
+      applyState(defaults);
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch]));
+    }
+
+    function setupTooltips() {
+      const tip = $("floatingTip");
+      document.addEventListener("mouseover", e => {
+        const target = e.target.closest(".info[data-tip]");
+        if (!target) return;
+        tip.textContent = target.getAttribute("data-tip");
+        tip.style.display = "block";
+        moveTip(e);
+      });
+      document.addEventListener("mousemove", e => {
+        if (tip.style.display === "block") moveTip(e);
+      });
+      document.addEventListener("mouseout", e => {
+        if (e.target.closest(".info[data-tip]")) tip.style.display = "none";
+      });
+      function moveTip(e) {
+        const pad = 16;
+        const rect = tip.getBoundingClientRect();
+        let x = e.clientX + 18;
+        let y = e.clientY + 18;
+        if (x + rect.width + pad > window.innerWidth) x = e.clientX - rect.width - 18;
+        if (y + rect.height + pad > window.innerHeight) y = e.clientY - rect.height - 18;
+        tip.style.left = Math.max(pad, x) + "px";
+        tip.style.top = Math.max(pad, y) + "px";
+      }
+    }
+
+    function init() {
+      setupTooltips();
+      inputIds.forEach(id => {
+        const el = $(id);
+        if (el) el.addEventListener("input", () => calculateAll());
+        if (el) el.addEventListener("change", () => calculateAll());
+      });
+      refreshProjectList();
+      const last = localStorage.getItem(LAST_KEY);
+      if (last) {
+        try { applyState(JSON.parse(last)); }
+        catch { resetDefaults(); }
+      } else {
+        resetDefaults();
+      }
+      calculateAll();
+    }
+
+    init();
+  </script>
+</body>
+</html>
